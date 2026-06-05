@@ -41,11 +41,33 @@ After importing, update these field types and fill in your row:
 | Negative Filters | Multiple select | ✅ | Hard exclusions (Junior, PHP, Blockchain, etc.) |
 | Seniority Level | Single select | ✅ | Options: Mid, Senior, Staff, Lead, Head |
 | Location Preference | Single select | | Options: Remote Only, Hybrid, On-site, Any |
-| Target Geography | Multiple select | ✅ | Options: Canada, USA, Remote Global, Remote North America, EMEA, UK, APAC |
+| Target Geography | Multiple select | ✅ | Options: Canada, USA, Remote Global, Remote North America, EMEA, UK, APAC, **Russia**, **Moscow**, **Saint Petersburg**, **Remote Russia** |
 | AI Model | Text | | Informational reference — the actual model is configured in each n8n OpenAI node. Use this field as a reminder of which model you're running. |
 | Scoring Rubric Override | Long text | | Custom instructions appended to the AI scoring prompt |
 | CV Markdown | Long text | ✅ | Your full CV in markdown — critical for STAR responses and CV tailoring |
 | Notification Email | Text | ✅ | Where alerts and digests go |
+
+### Target Geography — Russia (hh.ru)
+
+Scanner `01e` uses **area=113 (Russia-wide)** on RSS fetch whenever any RU-relevant geography is selected (D-08), then post-filters parsed region, description, and title against substring unions from **all** selected Profile geographies (D-10, D-11) — same pattern as Greenhouse `01a`.
+
+| Airtable option | hh `area` ID | Scanner behavior |
+|-----------------|--------------|------------------|
+| Russia | 113 | RSS `area=113`; post-filter via `GEO_MAP` substrings below |
+| Moscow | 1 | Same fetch area (113 per D-08); post-filter Moscow substrings |
+| Saint Petersburg | 2 | Same fetch area (113 per D-08); post-filter SPb substrings |
+| Remote Russia | (none) | `area=113` + post-filter remote RU substrings in region/description/title (D-09) |
+
+**GEO_MAP extensions for `01e` Parse & Filter** (substring arrays, case-insensitive match in region + stripped description + title):
+
+| Profile value | Substrings |
+|---------------|------------|
+| Russia | `россия`, `russia`, `рф` |
+| Moscow | `москва`, `moscow`, `мск` |
+| Saint Petersburg | `санкт-петербург`, `saint petersburg`, `spb`, `питер` |
+| Remote Russia | `удаленно`, `удалённо`, `remote`, `дистанцион` |
+
+Area ID reference: [api.hh.ru/areas/113](https://api.hh.ru/areas/113)
 
 ---
 
@@ -61,7 +83,7 @@ After importing, update these field types. **Do not fill in any rows** — workf
 | Location | Text | ✅ | |
 | Apply Link | URL | ✅ | Direct application URL |
 | Job Description | Long text | ✅ | Full JD for AI scoring |
-| Source | Single select | ✅ | Add options: LinkedIn, Indeed, Greenhouse, Ashby, Lever, Glassdoor |
+| Source | Single select | ✅ | Add options: LinkedIn, Indeed, Greenhouse, Ashby, Lever, Glassdoor, **hh.ru** |
 | Source Query | Text | ✅ | Which query or company found this job |
 | Source Tag | Text | ✅ | Label from the query that discovered it |
 | Discovery Date | Date | ✅ | When first seen |
@@ -104,25 +126,53 @@ After importing, update these field types. The CSV comes pre-loaded with 139 ver
 
 ---
 
-## Search Queries Table (JobSpy — Self-Hosted Only)
+## Search Queries Table (JobSpy + HH RSS)
 
-Skip this table if using n8n Cloud. After importing, update these field types:
+Skip this table if using n8n Cloud (JobSpy only). After importing, update these field types:
 
 | Field | Change Type To | Notes |
 |-------|---------------|-------|
 | Query | Text | Human label (e.g., "AI Automation — Canada") |
-| Source Type | Single select | Add options: JobSpy |
-| Query String | Text | Search term (e.g., "AI automation engineer") |
+| Source Type | Single select | Add options: **JobSpy**, **HH RSS** (D-12) |
+| Query String | Text | Search term for `text=` param (e.g., "AI automation engineer") |
 | Title Keywords | Text | Comma-separated per-query title filters |
-| JobSpy Sites | Text | Comma-separated: indeed, linkedin |
-| Location | Text | e.g., "Toronto, Canada" |
-| Country Filter | Text | e.g., "Canada" (for Indeed filtering) |
-| Hours Old | Number | Recency filter (e.g., 72 for last 3 days) |
-| Results Wanted | Number | Max results per query (capped at 100 by safety brake) |
+| JobSpy Sites | Text | **JobSpy-only** — comma-separated: indeed, linkedin |
+| Location | Text | JobSpy: city name (e.g., "Toronto, Canada"). **HH RSS:** hh area ID as plain text (`"1"`, `"2"`, `"113"`) — not city name (D-14) |
+| Country Filter | Text | **JobSpy-only** — e.g., "Canada" (for Indeed filtering) |
+| Hours Old | Number | **JobSpy-only** — recency filter (e.g., 72 for last 3 days) |
+| Results Wanted | Number | **JobSpy-only** — max results per query (capped at 100 by safety brake) |
 | Source Tag | Text | Label applied to discovered jobs (e.g., "AI Hunter") |
 | Enabled | Checkbox | Toggle on/off without deleting the query |
 | Last Run | Date | Auto-updated by workflows |
 | Results Last Run | Number | Auto-updated by workflows |
+
+### Search Queries (HH RSS)
+
+Enabled rows with `Source Type = HH RSS` merge with Profile auto-feeds in scanner `01e` (D-17). Reused columns:
+
+- **Query** — human label for the row
+- **Query String** — overrides RSS `text=` when set (D-13)
+- **Title Keywords** — comma-separated; any keyword must appear in vacancy title (case-insensitive)
+- **Location** — hh **area ID** as plain text (`"1"`, `"2"`, `"113"`). When empty, derive area like auto-feeds: `113` if Profile has any RU-relevant geography (D-15). Allowed IDs: `{1, 2, 113}` only.
+- **Source Tag**, **Enabled**, **Last Run**, **Results Last Run** — same semantics as JobSpy rows
+
+**JobSpy-only columns** (ignored for HH RSS rows per D-16): JobSpy Sites, Country Filter, Hours Old, Results Wanted.
+
+**Example HH RSS row:**
+
+| Query | Source Type | Query String | Title Keywords | Location | Source Tag | Enabled |
+|-------|-------------|--------------|----------------|----------|------------|---------|
+| Python RU manual | HH RSS | python developer | Python, FastAPI | 113 | RU Hunter | ✓ |
+
+---
+
+## Manual Airtable Setup (required before first `01e` run)
+
+n8n typecast may **not** create new single-select options. Add these manually in the Airtable UI before the first `01e` Create node succeeds:
+
+1. **Profile → Target Geography:** add Russia, Moscow, Saint Petersburg, Remote Russia
+2. **Search Queries → Source Type:** add HH RSS
+3. **Pipeline → Source:** add `hh.ru`
 
 ---
 
