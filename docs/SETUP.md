@@ -283,7 +283,7 @@ Go to [n8n.io](https://n8n.io) and create an account. The Starter plan (€20/mo
 
 Same as Step 2.5, but **skip `01d-scanner-jobspy.json`** — JobSpy requires a sidecar container that n8n Cloud can't run.
 
-Import the other 8 workflows (including **`01e-scanner-hhru.json`** — hh.ru RSS works on Cloud with no sidecar).
+Import the other 8 workflows (including **`01e-scanner-hhru.json`** — hh.ru RSS works on Cloud with no sidecar; enriches **Job Description** from each vacancy page HTML after RSS discovery).
 
 ### 3.3 Configure credentials
 
@@ -350,7 +350,7 @@ n8n Desktop only runs when your machine is on. Workflows fire on their schedule,
 After completing any deployment mode, run this checklist:
 
 1. **Scanner test**: Execute Workflow 01a manually. Check your Pipeline table — do new jobs appear with Status: New?
-2. **hh.ru RSS smoke** (optional): `curl -sL -o /dev/null -w "%{http_code}" "https://hh.ru/search/vacancy/rss?text=test&area=113"` should print `200`. After importing `01e-scanner-hhru.json`, execute it manually and confirm new Pipeline rows have **Source** = `hh.ru` and **Job ID** ending with `-hhr`.
+2. **hh.ru RSS smoke** (optional): `curl -sL -o /dev/null -w "%{http_code}" "https://hh.ru/search/vacancy/rss?text=test&area=113"` should print `200`. After importing `01e-scanner-hhru.json`, execute it manually and confirm new Pipeline rows have **Source** = `hh.ru` and **Job ID** ending with `-hhr`. Workflow 01e fetches each vacancy's public HTML page after RSS parse (1 second between page fetches) and writes the full stripped description to **Job Description** — substantially longer than the RSS summary (~500+ characters for typical vacancies), with readable plain text and no HTML tags. Offline parse checks: `node scripts/test_hh_rss_parse.mjs` and `node scripts/test_hh_vacancy_parse.mjs` should both exit 0.
 3. **Evaluator test**: Execute Workflow 02. Do the New jobs now have scores, fit tiers, and reasoning?
 4. **Alert test**: If any job scored High Fit, did you receive an email?
 5. **Digest test**: Execute Workflow 06. Did you receive a daily digest email?
