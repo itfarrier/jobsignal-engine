@@ -193,6 +193,7 @@ In n8n:
    - `01b-scanner-ashby.json`
    - `01c-scanner-lever.json`
    - `01d-scanner-jobspy.json`
+   - `01e-scanner-hhru.json`
    - `02-evaluator.json`
    - `03-tailor.json`
    - `04-housekeeper.json`
@@ -258,6 +259,7 @@ Once testing passes, toggle each workflow to **Active**. The default schedule:
 | 01b — Ashby Scanner | Daily | 8:05 AM |
 | 01c — Lever Scanner | Daily | 8:10 AM |
 | 01d — JobSpy Scanner | Daily | 8:15 AM |
+| 01e — hh.ru RSS Scanner | Daily | 8:20 AM |
 | 02 — Evaluator | Daily | 9:00 AM |
 | 03 — Tailor | Daily | 9:30 AM |
 | 04 — Housekeeper | Weekly | Sunday midnight |
@@ -281,7 +283,7 @@ Go to [n8n.io](https://n8n.io) and create an account. The Starter plan (€20/mo
 
 Same as Step 2.5, but **skip `01d-scanner-jobspy.json`** — JobSpy requires a sidecar container that n8n Cloud can't run.
 
-Import the other 7 workflows.
+Import the other 8 workflows (including **`01e-scanner-hhru.json`** — hh.ru RSS works on Cloud with no sidecar).
 
 ### 3.3 Configure credentials
 
@@ -348,10 +350,11 @@ n8n Desktop only runs when your machine is on. Workflows fire on their schedule,
 After completing any deployment mode, run this checklist:
 
 1. **Scanner test**: Execute Workflow 01a manually. Check your Pipeline table — do new jobs appear with Status: New?
-2. **Evaluator test**: Execute Workflow 02. Do the New jobs now have scores, fit tiers, and reasoning?
-3. **Alert test**: If any job scored High Fit, did you receive an email?
-4. **Digest test**: Execute Workflow 06. Did you receive a daily digest email?
-5. **Tailor test** (self-hosted/local only): Execute Workflow 03. Do High Fit jobs now have a DOCX attachment in the Tailored CV field?
+2. **hh.ru RSS smoke** (optional): `curl -sL -o /dev/null -w "%{http_code}" "https://hh.ru/search/vacancy/rss?text=test&area=113"` should print `200`. After importing `01e-scanner-hhru.json`, execute it manually and confirm new Pipeline rows have **Source** = `hh.ru` and **Job ID** ending with `-hhr`.
+3. **Evaluator test**: Execute Workflow 02. Do the New jobs now have scores, fit tiers, and reasoning?
+4. **Alert test**: If any job scored High Fit, did you receive an email?
+5. **Digest test**: Execute Workflow 06. Did you receive a daily digest email?
+6. **Tailor test** (self-hosted/local only): Execute Workflow 03. Do High Fit jobs now have a DOCX attachment in the Tailored CV field?
 
 If any step fails, check the workflow's execution log in n8n (click the clock icon on the workflow). The error message will tell you which node failed and why.
 
