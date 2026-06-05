@@ -15,17 +15,71 @@ const FIXTURE = join(__dirname, '../fixtures/hh-vacancy-page-sample.html');
 const TRUNCATION_SUFFIX = '\n\n[Description truncated]';
 const MAX_DESCRIPTION_LENGTH = 50000;
 
-// RED stubs — throw or return empty until Task 2 implements
-export const extractVacancyDescriptionHtml = (_rawHtml) => {
+export const stripHtml = (html) => {
+  if (!html || typeof html !== 'string') return '';
+
+  let text = html;
+  text = text.split('&lt;').join('<');
+  text = text.split('&gt;').join('>');
+  text = text.split('&quot;').join('"');
+  text = text.split('&#39;').join("'");
+  text = text.split('&apos;').join("'");
+  text = text.split('&nbsp;').join(' ');
+  text = text.split('&amp;').join('&');
+
+  let result = '';
+  let inTag = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === '<') {
+      inTag = true;
+      if (result.length > 0 && result[result.length - 1] !== ' ') {
+        result += ' ';
+      }
+      continue;
+    }
+    if (ch === '>') {
+      inTag = false;
+      continue;
+    }
+    if (!inTag) result += ch;
+  }
+  return result.replace(/\s+/g, ' ').trim();
+};
+
+export const extractVacancyDescriptionHtml = (rawHtml) => {
+  if (!rawHtml || typeof rawHtml !== 'string') return '';
+
+  const ldRe = /<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi;
+  let m;
+  while ((m = ldRe.exec(rawHtml)) !== null) {
+    try {
+      const data = JSON.parse(m[1].trim());
+      const postings = Array.isArray(data) ? data : [data];
+      for (const item of postings) {
+        if (item && item['@type'] === 'JobPosting' && item.description) {
+          return String(item.description);
+        }
+      }
+    } catch {
+      // try next block
+    }
+  }
+
+  const qaRe = /data-qa="vacancy-description"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/i;
+  const qa = rawHtml.match(qaRe);
+  if (qa && qa[1]) return qa[1];
+
   return '';
 };
 
-export const stripHtml = (_html) => {
-  return '';
-};
-
-export const mergeVacancyDescription = (_rawHtml, rssFallback) => {
-  return rssFallback;
+export const mergeVacancyDescription = (rawHtml, rssFallback) => {
+  const html = extractVacancyDescriptionHtml(rawHtml);
+  let text = html ? stripHtml(html) : rssFallback;
+  if (text.length > MAX_DESCRIPTION_LENGTH) {
+    text = text.substring(0, MAX_DESCRIPTION_LENGTH) + TRUNCATION_SUFFIX;
+  }
+  return text;
 };
 
 function assert(condition, message) {
@@ -67,9 +121,9 @@ function main() {
     const rssOnly = mergeVacancyDescription('', 'rss only');
     assert(rssOnly === 'rss only', `expected "rss only", got "${rssOnly}"`);
 
-    // Test 5: 50k+ truncation
-    const longHtml =
-      '<p>' + 'x'.repeat(50001) + '</p>';
+    // Test 5: 50k+ truncation (use data-qa block so extraction yields long text)
+    const longContent = 'x'.repeat(50001);
+    const longHtml = `<div data-qa="vacancy-description"><div><p>${longContent}</p></div></div>`;
     const truncated = mergeVacancyDescription(longHtml, 'rss fallback');
     assert(
       truncated.endsWith(TRUNCATION_SUFFIX),
