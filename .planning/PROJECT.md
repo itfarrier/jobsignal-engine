@@ -4,7 +4,7 @@
 
 JobSignal Engine is an autonomous job-search pipeline that treats your hunt like a sales pipeline: scheduled n8n workflows discover roles from ATS APIs and job boards, score them against your Airtable Profile, tailor CVs, prep interviews, and email you results before you open your laptop. You review and apply — the system does discovery and prep unattended.
 
-This milestone adds **hh.ru** as a fifth discovery source for the Russian job market, using public RSS feeds (no HeadHunter API credentials), Profile-driven search queries, and the same Pipeline / Evaluator downstream path as scanners 1a–1d.
+**hh.ru** is now a fifth discovery source for the Russian job market (v1.0 shipped 2026-06-05). Scanner `01e` uses public RSS feeds (no HeadHunter API credentials), Profile-driven search queries, and the same Pipeline / Evaluator downstream path as scanners 1a–1d.
 
 ## Core Value
 
@@ -22,18 +22,14 @@ Every morning, relevant new jobs land in Airtable already deduplicated and ready
 - ✓ CV tailoring to DOCX via sidecar — existing (`workflows/03`)
 - ✓ Housekeeping and evening digest — existing (`workflows/04`, `06`)
 - ✓ Airtable as single source of truth (Profile, Tracked Companies, Pipeline, Search Queries) — existing
+- ✓ hh.ru RSS scanner (`workflows/01e-scanner-hhru.json`) — v1.0
+- ✓ RU Target Geography options and HH RSS Search Query columns in schema docs — v1.0
+- ✓ Pipeline Source `hh.ru` with `-hhr` job IDs and 8:20 daily schedule — v1.0
 
 ### Active
 
-- [ ] **HH-01**: n8n workflow `workflows/01e-scanner-hhru.json` discovers vacancies via public hh.ru RSS (`/search/vacancy/rss`) — no OAuth / employer API
-- [ ] **HH-02**: Auto-build RSS feeds from Profile (`Target Roles`, `Core Skills`, `Target Geography`) — one feed per role, bilingual `text=` where Profile is mixed RU/EN, cap ~8 auto feeds
-- [ ] **HH-03**: Merge enabled **Search Queries** rows with `Source Type = HH RSS` (override / extra queries); `Location` field stores hh `area` ID when set, else derive from Profile
-- [ ] **HH-04**: Parse RSS items (title, link, company, region, salary from description HTML); post-filter by Profile geography substrings (Russian + English); optional per-query **Title Keywords**; no extra Russian negative-filter logic in scanner (Evaluator handles `Negative Filters`)
-- [ ] **HH-05**: Write net-new jobs to Pipeline with `source: hh.ru`, `jobId` suffix `-hhr`, same dedup / create pattern as 1d; schedule daily **8:20** + manual trigger
-- [ ] **HH-06**: v1 uses RSS summary as `Job Description`; public vacancy-page scrape deferred to a later phase
-- [ ] **HH-07**: Extend **Target Geography** in Airtable schema/docs and scanner `GEO_MAP`: Russia (`113`), Moscow (`1`), Saint Petersburg (`2`), Remote Russia; sync schema doc with geographies already in 1a–1c code
-- [ ] **HH-08**: Document Search Queries **HH RSS** column usage; add `hh.ru` to Pipeline **Source** single-select options
-- [ ] **HH-09**: Skip auto hh feeds when Profile has no RU-relevant geography (manual HH RSS Search Queries may still run)
+- [ ] **HH-10**: Fetch full vacancy description from public vacancy HTML page (post-RSS enrichment)
+- [ ] **HH-11**: Read Profile `Target Geography` dynamically in JobSpy 1d parse node (existing TODO in 01d)
 
 ### Out of Scope
 
@@ -46,7 +42,7 @@ Every morning, relevant new jobs land in Airtable already deduplicated and ready
 
 ## Context
 
-**Brownfield:** Production codebase on branch `add-hh-ru`; scanners 1a–1d and evaluator pipeline are shipped. Codebase map lives in `.planning/codebase/`. Prior experimental notes referenced an API-based hh scanner; this milestone **replaces** that approach with RSS-first discovery per user constraint.
+**Brownfield:** Production codebase on branch `add-hh-ru`; scanners 1a–1e and evaluator pipeline are shipped. Codebase map lives in `.planning/codebase/`. hh.ru discovery uses RSS-first approach (API auth unavailable).
 
 **hh.ru RSS:** Public endpoint example: `https://hh.ru/search/vacancy/rss?text=python+developer&area=113`. Returns ~20 items per feed with structured summary in `description` (company, region, salary in Russian). Full JD requires optional HTML fetch later.
 
@@ -69,14 +65,14 @@ Every morning, relevant new jobs land in Airtable already deduplicated and ready
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| RSS over HH API | API auth not available to user | — Pending |
-| One RSS feed per Target Role (not one mega-OR query) | ~20 items/feed; clearer `Source Query`; less noise; matches JobSpy one-intent-per-row pattern | — Pending |
-| Profile auto-feeds + Search Queries `HH RSS` overrides | Flexibility without editing workflow for experiments | — Pending |
-| RSS-only descriptions in v1 | Ship scanner faster; Evaluator tolerates thinner text short-term | — Pending |
-| Match Profile `Target Geography` | Consistent with 1a–1c; user selects RU geos explicitly | — Pending |
-| No RU negative filters in scanner | User preference; Evaluator already enforces Profile negatives | — Pending |
-| Schedule 8:20 daily | After 1a–1d (8:00–8:15), before Evaluator 9:00 | — Pending |
-| Reject Playwright auto-apply parser | Out of scope for discovery pipeline | — Pending |
+| RSS over HH API | API auth not available to user | ✓ Shipped in 01e |
+| One RSS feed per Target Role (not one mega-OR query) | ~20 items/feed; clearer `Source Query`; less noise; matches JobSpy one-intent-per-row pattern | ✓ Shipped in 01e |
+| Profile auto-feeds + Search Queries `HH RSS` overrides | Flexibility without editing workflow for experiments | ✓ Shipped in 01e |
+| RSS-only descriptions in v1 | Ship scanner faster; Evaluator tolerates thinner text short-term | ✓ Shipped; HH-10 deferred |
+| Match Profile `Target Geography` | Consistent with 1a–1c; user selects RU geos explicitly | ✓ Shipped in 01e |
+| No RU negative filters in scanner | User preference; Evaluator already enforces Profile negatives | ✓ Shipped in 01e |
+| Schedule 8:20 daily | After 1a–1d (8:00–8:15), before Evaluator 9:00 | ✓ Shipped in 01e |
+| Reject Playwright auto-apply parser | Out of scope for discovery pipeline | ✓ Confirmed out of scope |
 
 ## Evolution
 
@@ -96,4 +92,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-05 after initialization (hh.ru scanner milestone)*
+*Last updated: 2026-06-05 after v1.0 milestone*
