@@ -33,9 +33,13 @@
 4. No HeadHunter API auth; no Evaluator/Tailor workflow changes required
 
 **Plans**: 2 plans
-
 Plans:
+**Wave 1**
+
 - [ ] 02-01-PLAN.md — TDD: vacancy page fixture, extractVacancyDescriptionHtml, stripHtml, mergeVacancyDescription tests
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 02-02-PLAN.md — Wire Loop Over Jobs + Fetch + Merge into 01e; SETUP verification docs
 
 ## Progress
@@ -43,4 +47,4 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. hh.ru RSS Scanner | 2/2 | Complete | 2026-06-05 |
-| 2. hh.ru Full Description Enrichment | 0/2 | Not started | — |
+| 2. hh.ru Full Description Enrichment | 0/2 | Planned | — |

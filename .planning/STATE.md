@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: hh.ru Scanner
-status: Awaiting next milestone
-stopped_at: Phase 1 planned — ready to execute
-last_updated: "2026-06-05T19:58:58.942Z"
-last_activity: 2026-06-05 — Milestone v1.0 completed and archived
+milestone: v2.0
+milestone_name: hh.ru Description Enrichment
+status: executing
+stopped_at: Milestone v1.0 complete — ready for next milestone
+last_updated: "2026-06-05T20:17:27.325Z"
+last_activity: 2026-06-05 — Milestone v2.0 started
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-06-05)
 
 ## Current Position
 
-Phase: Milestone v1.0 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-06-05 — Milestone v1.0 completed and archived
+Status: Ready to execute
+Last activity: 2026-06-05 — Milestone v2.0 started
 
 ## Performance Metrics
 

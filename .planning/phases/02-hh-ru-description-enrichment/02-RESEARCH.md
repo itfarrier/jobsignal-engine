@@ -385,17 +385,11 @@ export const mergeVacancyDescription = (rawHtml, rssFallback) => {
 | A3 | `outputPropertyName: data` for n8n HTTP text response | Pattern 1 | Merge reads wrong field → all RSS fallbacks |
 | A4 | Pre-dedup fetch acceptable despite HH-10 "net-new" wording | Insertion Point | Extra HTTP load; dedup-after-fetch is optimization deferred |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Should `_descriptionSource` be written to Airtable or kept internal?**
-   - What we know: Useful for debugging; no Airtable column today.
-   - What's unclear: Operator visibility vs schema purity.
-   - Recommendation: Omit from Airtable create mapping; optional console.log in Code node only (Claude's discretion).
+1. **Should `_descriptionSource` be written to Airtable or kept internal?** — RESOLVED: Omit from Airtable create mapping; debug-only in Code node if needed (02-02).
 
-2. **Exact browser User-Agent string**
-   - What we know: Public HTML returns 200 with browser, empty, and curl UAs in testing.
-   - What's unclear: Long-term DDoS-Guard behavior for n8n Cloud egress IPs.
-   - Recommendation: Use descriptive browser-compatible string; monitor failures; do not use API `HH-User-Agent` format unless switching to API (out of scope).
+2. **Exact browser User-Agent string** — RESOLVED: Use browser-compatible User-Agent on `Fetch Vacancy Page` HTTP node (02-02 Task 1); monitor fetch failures; no HH API User-Agent format.
 
 ## Environment Availability
 

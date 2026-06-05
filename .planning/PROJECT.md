@@ -28,8 +28,11 @@ Every morning, relevant new jobs land in Airtable already deduplicated and ready
 
 ### Active
 
-- [ ] **HH-10**: Fetch full vacancy description from public vacancy HTML page (post-RSS enrichment)
-- [ ] **HH-11**: Read Profile `Target Geography` dynamically in JobSpy 1d parse node (existing TODO in 01d)
+- [ ] **HH-10**: Fetch full vacancy description from public vacancy HTML page (post-RSS enrichment) — **v2.0 milestone**
+
+### Future
+
+- [ ] **HH-11**: Read Profile `Target Geography` dynamically in JobSpy 1d parse node (existing TODO in 01d) — deferred past v2.0
 
 ### Out of Scope
 
@@ -74,6 +77,14 @@ Every morning, relevant new jobs land in Airtable already deduplicated and ready
 | Schedule 8:20 daily | After 1a–1d (8:00–8:15), before Evaluator 9:00 | ✓ Shipped in 01e |
 | Reject Playwright auto-apply parser | Out of scope for discovery pipeline | ✓ Confirmed out of scope |
 
+## Current Milestone: v2.0 hh.ru Description Enrichment
+
+**Goal:** Replace thin RSS summaries with full vacancy page text for net-new hh.ru jobs so the Evaluator scores against complete job descriptions.
+
+**Target features:**
+
+- HH-10: Post-RSS HTML enrichment in workflow `01e` (public vacancy page fetch + strip + merge)
+
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
@@ -92,4 +103,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-05 after v1.0 milestone*
+*Last updated: 2026-06-05 — v2.0 milestone started (HH-10)*
