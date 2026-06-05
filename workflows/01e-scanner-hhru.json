@@ -163,6 +163,80 @@
     },
     {
       "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "a1e00001-0016-4000-8000-000000000016",
+      "name": "Loop Over Jobs",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        680,
+        -128
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.applyLink }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (compatible; JobSignalEngine/2.0; +https://github.com/jobsignal-engine)"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "responseFormat": "text",
+              "outputPropertyName": "data"
+            }
+          }
+        }
+      },
+      "id": "a1e00001-0017-4000-8000-000000000017",
+      "name": "Fetch Vacancy Page",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        -48
+      ],
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Placeholder — full merge logic added in Task 2\nreturn $input.all();"
+      },
+      "id": "a1e00001-0018-4000-8000-000000000018",
+      "name": "Merge Descriptions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1080,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 1
+      },
+      "id": "a1e00001-0019-4000-8000-000000000019",
+      "name": "Wait 1s Vacancy",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1280,
+        -48
+      ],
+      "webhookId": "a1e-wait-1s-hhru-vacancy"
+    },
+    {
+      "parameters": {
         "amount": 1
       },
       "id": "a1e00001-0009-4000-8000-000000000009",
@@ -170,7 +244,7 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        800,
+        1480,
         -128
       ],
       "webhookId": "a1e-wait-1s-hhru-rss"
@@ -808,7 +882,58 @@
       "main": [
         [
           {
+            "node": "Loop Over Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Jobs": {
+      "main": [
+        [
+          {
             "node": "Wait 1s",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fetch Vacancy Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Vacancy Page": {
+      "main": [
+        [
+          {
+            "node": "Merge Descriptions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Descriptions": {
+      "main": [
+        [
+          {
+            "node": "Wait 1s Vacancy",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 1s Vacancy": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Jobs",
             "type": "main",
             "index": 0
           }
