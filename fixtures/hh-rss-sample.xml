@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='utf-8'?>
+<rss version="2.0">
+  <channel>
+    <title>HeadHunter Vacancy</title>
+    <link>https://hh.ru</link>
+    <description>HeadHunter Vacancy</description>
+    <item>
+      <pubDate>2026-06-05T13:29:02.071+03:00</pubDate>
+      <title>Backend-разработчик Python / FastAPI для desktop-приложения</title>
+      <link>https://hh.ru/vacancy/133903879</link>
+      <guid isPermaLink="true">https://hh.ru/vacancy/133903879</guid>
+      <description><![CDATA[<p>Вакансия компании: Визионеро</p> <p>Создана: 05.06.2026</p> <p>Регион: Санкт-Петербург</p> <p>Предполагаемый уровень месячного дохода: до 140 000 ₽</p>]]></description>
+    </item>
+  </channel>
+</rss>
