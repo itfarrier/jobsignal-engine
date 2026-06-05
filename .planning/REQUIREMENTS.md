@@ -8,7 +8,7 @@
 
 ### hh.ru Full Description
 
-- [ ] **HH-10**: After RSS discovery in `01e`, fetch the public vacancy HTML page for each net-new job and replace the thin RSS summary with a stripped full description before writing to Pipeline
+- [x] **HH-10**: After RSS discovery in `01e`, fetch the public vacancy HTML page for each net-new job and replace the thin RSS summary with a stripped full description before writing to Pipeline
 
 ## Future Requirements
 
@@ -31,7 +31,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| HH-10 | Phase 2 | Pending |
+| HH-10 | Phase 2 | Complete |
 
 **Coverage:**
 

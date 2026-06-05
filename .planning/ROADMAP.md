@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 hh.ru Scanner** — Phase 1 (shipped 2026-06-05)
-- 🚧 **v2.0 hh.ru Description Enrichment** — Phase 2 (in progress)
+- ✅ **v2.0 hh.ru Description Enrichment** — Phase 2 (shipped 2026-06-05)
 
 ## Phases
 
@@ -40,11 +40,11 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 02-02-PLAN.md — Wire Loop Over Jobs + Fetch + Merge into 01e; SETUP verification docs
+- [x] 02-02-PLAN.md — Wire Loop Over Jobs + Fetch + Merge into 01e; SETUP verification docs
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. hh.ru RSS Scanner | 2/2 | Complete | 2026-06-05 |
-| 2. hh.ru Full Description Enrichment | 1/2 | In progress | — |
+| 2. hh.ru Full Description Enrichment | 2/2 | Complete | 2026-06-05 |
