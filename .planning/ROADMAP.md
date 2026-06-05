@@ -36,7 +36,7 @@
 Plans:
 **Wave 1**
 
-- [ ] 02-01-PLAN.md — TDD: vacancy page fixture, extractVacancyDescriptionHtml, stripHtml, mergeVacancyDescription tests
+- [x] 02-01-PLAN.md — TDD: vacancy page fixture, extractVacancyDescriptionHtml, stripHtml, mergeVacancyDescription tests
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -47,4 +47,4 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. hh.ru RSS Scanner | 2/2 | Complete | 2026-06-05 |
-| 2. hh.ru Full Description Enrichment | 0/2 | Planned | — |
+| 2. hh.ru Full Description Enrichment | 1/2 | In progress | — |

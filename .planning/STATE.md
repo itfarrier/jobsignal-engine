@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: hh.ru Description Enrichment
 status: executing
-stopped_at: Milestone v1.0 complete — ready for next milestone
-last_updated: "2026-06-05T20:17:27.325Z"
-last_activity: 2026-06-05 — Milestone v2.0 started
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-06-05T20:38:00.000Z"
+last_activity: 2026-06-05 -- Completed 02-01 vacancy parse TDD
 progress:
-  total_phases: 0
+  total_phases: 1
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 2
+  completed_plans: 1
+  percent: 50
 ---
 
 # Project State
@@ -21,20 +21,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-05)
 
 **Core value:** Every morning, relevant new jobs land in Airtable already deduplicated and ready for AI scoring — including hh.ru roles matching your Profile.
-**Current focus:** Planning next milestone
+**Current focus:** Phase 02 — hh-ru-description-enrichment
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Ready to execute
-Last activity: 2026-06-05 — Milestone v2.0 started
+Phase: 02 (hh-ru-description-enrichment) — EXECUTING
+Plan: 2 of 2
+Status: Ready for 02-02 workflow port
+Last activity: 2026-06-05 -- Completed 02-01 vacancy parse TDD
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 2
+- Total plans completed: 3
 - Average duration: —
 - Total execution time: 0 hours
 
@@ -47,6 +47,11 @@ Last activity: 2026-06-05 — Milestone v2.0 started
 ## Accumulated Context
 
 ### Decisions
+
+Phase 02 Plan 01:
+- JSON-LD JobPosting.description primary; data-qa vacancy-description fallback
+- stripHtml duplicated from Phase 1 RSS test script (not 01a Greenhouse variant)
+- mergeVacancyDescription applies 50k cap after stripHtml with truncation marker
 
 From PROJECT.md Key Decisions (pending implementation):
 
@@ -70,14 +75,14 @@ None.
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| Enhancement | Full vacancy HTML description fetch | v2 (HH-10) | 2026-06-05 |
+| Enhancement | Full vacancy HTML description fetch | In progress (02-01 parse done) | 2026-06-05 |
 
 ## Session Continuity
 
-Last session: 2026-06-05T16:05:10.494Z
-Stopped at: Milestone v1.0 complete — ready for next milestone
-Resume file: none
+Last session: 2026-06-05T20:38:00.000Z
+Stopped at: Completed 02-01-PLAN.md
+Resume file: .planning/phases/02-hh-ru-description-enrichment/02-02-PLAN.md
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Execute 02-02-PLAN.md to wire fetch + merge into workflows/01e-scanner-hhru.json
