@@ -25,13 +25,14 @@ Add hh.ru as a fifth discovery source for the Russian job market. Phase 1 delive
   3. Enabled Search Queries with `Source Type = HH RSS` merge with Profile feeds and respect per-query `Location` (area ID) and Title Keywords
   4. Parsed jobs include title, company, region, salary (when in RSS description), apply link, and RSS summary as Job Description
   5. Airtable schema docs list RU geography options and HH RSS Search Query columns; Pipeline Source includes `hh.ru`
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: TBD during plan-phase
+- [ ] 01-01-PLAN.md — Airtable schema docs: RU geographies, HH RSS columns, Pipeline Source `hh.ru` (HH-07, HH-08)
+- [ ] 01-02-PLAN.md — `01e-scanner-hhru.json` workflow, parse fixture/script, SETUP.md (HH-01–HH-06, HH-09)
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. hh.ru RSS Scanner | 0/TBD | Not started | - |
+| 1. hh.ru RSS Scanner | 0/2 | Not started | - |
