@@ -29,7 +29,9 @@ Every morning, relevant new jobs land in Airtable already deduplicated and ready
 
 ### Active
 
-_(No active requirements — all shipped.)_
+- [ ] **HH-12**: Diagnose root cause of low vacancy volume from 01e scanner
+- [ ] **HH-13**: Implement feed diversity improvements (additional query variations, sub-areas, or search strategies)
+- [ ] **HH-14**: Verify coverage improvement with measurable before/after comparison
 
 ### Future
 
@@ -82,11 +84,14 @@ _(No active requirements — all shipped.)_
 | stripHtml copied verbatim from Phase 1 RSS test script | Consistent sanitization across RSS and vacancy paths; entity decode with &amp; last | ✓ Shipped v2.0 |
 | _descriptionSource / _fetchStatus / _fetchHint internal diagnostics | n8n-only debuggable fields, not mapped to Airtable | ✓ Shipped v2.0 |
 
-## Current Milestone
+## Current Milestone: v2.1 01e Coverage Improvement
 
-**Shipped:** v2.0 hh.ru Description Enrichment (2026-06-06)
+**Goal:** Improve the hh.ru RSS scanner (01e) to discover more vacancies per run.
 
-HH-10 delivered: `01e` fetches each net-new vacancy's public HTML via RSS `link`, extracts JobPosting JSON-LD (data-qa fallback), stripHtml-sanitizes to plain text, and writes enriched `Job Description` to Pipeline with RSS fallback on failure. All offline tests pass. Live n8n end-to-end requires manual UAT.
+**Target features:**
+- Diagnose why 01e finds too few vacancies (query construction, feed count, hh.ru RSS limits)
+- Implement fixes: more feed diversity, better query patterns, sub-areas or parallel feeds
+- Verify coverage improvement quantitatively
 
 ## Evolution
 
@@ -106,4 +111,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-06 — v2.0 milestone shipped*
+*Last updated: 2026-06-06 — v2.1 milestone started*
