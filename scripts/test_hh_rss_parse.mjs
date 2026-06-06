@@ -100,7 +100,6 @@ function main() {
   }
 
   console.log('OK: hh.ru RSS parse fixture passed');
-  console.log(JSON.stringify(parsed, null, 2));
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
