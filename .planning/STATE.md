@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: 01e Coverage Improvement
 status: planning
-last_updated: "2026-06-06T20:52:43.086Z"
-last_activity: 2026-06-06
+last_updated: "2026-06-07T00:00:00.000Z"
+last_activity: 2026-06-07
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,17 +17,19 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-05)
+See: .planning/PROJECT.md (updated 2026-06-06)
 
 **Core value:** Every morning, relevant new jobs land in Airtable already deduplicated and ready for AI scoring — including hh.ru roles matching your Profile.
-**Current focus:** Phase 02 — hh-ru-description-enrichment
+**Current focus:** Phase 3 — Baseline Diagnosis
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-06-06 — Milestone v2.1 started
+Phase: 3 of 5 (Baseline Diagnosis)
+Plan: — (ready to plan)
+Status: Ready to plan
+Last activity: 2026-06-07 — Roadmap created for v2.1 (Phases 3-5)
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -42,66 +44,46 @@ Last activity: 2026-06-06 — Milestone v2.1 started
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1 | 2 | - | - |
+| 2 | 5 | - | - |
 
 ## Accumulated Context
 
 ### Decisions
 
-Phase 02 Plan 01:
+From PROJECT.md Key Decisions (v2.1):
 
-- JSON-LD JobPosting.description primary; data-qa vacancy-description fallback
-- stripHtml duplicated from Phase 1 RSS test script (not 01a Greenhouse variant)
-- mergeVacancyDescription applies 50k cap after stripHtml with truncation marker
-
-Phase 02 Plan 02:
-
-- Loop Over Jobs (batch=1) nested inside feed loop with Wait 1s Vacancy pacing
-- Fetch Vacancy Page: HTTP GET applyLink, text response, 10s timeout, alwaysOutputData
-- Merge Descriptions: SSRF whitelist ^https://hh.ru/vacancy/\d+; _descriptionSource internal only
-
-From PROJECT.md Key Decisions (pending implementation):
-
-- RSS over HH API — no auth available
-- One RSS feed per Target Role (~8 cap), not one mega-OR query
-- Profile auto-feeds + Search Queries `HH RSS` overrides
-- RSS-only descriptions in v1; vacancy page scrape shipped in v2.0 (02-02)
-- Match Profile `Target Geography` with new RU options
-- No RU negative filters in scanner — Evaluator handles negatives
-- Schedule 8:20 daily (after 1a–1d, before Evaluator 9:00)
+- RSS over HH API — no auth available (unchanged)
+- Feed diversity via orthogonal parameter combinations, not API pagination
+- Sub-area feeds (Moscow=1, SPb=2, Russia=113) highest impact, then query variants, experience/work splits
+- Cyrillic encoding fixes (numeric entity decode + NFC normalize) are preconditions for feed expansion
+- Vacancy fetch delay increase (1s → 3-5s) must accompany feed expansion, not follow it
+- Safety brake cap raised to 300-500 before adding feed diversity
+- 40-feed hard cap with priority scoring to prevent n8n timeout
+- 01e schedule moved to 7:30 AM to avoid Evaluator collision
 
 ### Pending Todos
 
-- Human UAT: live n8n enrichment smoke test + RSS fallback path (`02-HUMAN-UAT.md`, 2 pending) — gap closure plans address root causes, re-import 01e first
-- Security audit: `/gsd-secure-phase 2` before milestone close
+None yet for v2.1.
 
 ### Blockers/Concerns
 
-- CR-01 (critical): Fetch runs before URL whitelist — `/gsd-code-review 2 --fix` recommended
-- Security audit not yet run — `/gsd-secure-phase 2`
+None yet.
 
 ## Deferred Items
 
-Items acknowledged and deferred at milestone close on 2026-06-06:
-
-| Category | Item | Status |
-|----------|------|--------|
-| debug | hh-rss-extra-json-output | diagnosed |
-| debug | phase02-uat-test3-enrich | diagnosed |
-| uat_gaps | Phase 02: 02-UAT.md | diagnosed |
-| verification_gaps | Phase 02: 02-VERIFICATION.md | human_needed |
-
-Previously deferred:
+Items carried forward from v2.0 milestone close:
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| Enhancement | Full vacancy HTML description fetch | Complete (02-02) | 2026-06-05 |
+| uat_gaps | Phase 02: 02-UAT.md | human_needed | v2.0 close |
+| verification_gaps | Phase 02: 02-VERIFICATION.md | human_needed | v2.0 close |
 
 ## Session Continuity
 
-Last session: 2026-06-05T20:25:38.000Z
-Stopped at: Completed 02-02-PLAN.md
+Last session: 2026-06-07
+Stopped at: Roadmap created for v2.1 (Phases 3-5)
 Resume file: None
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Plan Phase 3 with /gsd-plan-phase 3
