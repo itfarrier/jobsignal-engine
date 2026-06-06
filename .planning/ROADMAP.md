@@ -59,7 +59,14 @@
   2. Baseline metrics confirm the known ~160 raw items ceiling, documenting each loss stage from feed generation through Pipeline write
   3. Baseline data is recorded/exported in a form usable as before-measure in Phase 5 comparison
   4. No workflow files (.json) were modified — only execution logging and metric recording
-**Plans**: TBD
+**Plans**: 3 plans in 2 waves
+
+**Wave 1** *(parallel)*
+- [ ] 03-01-PLAN.md — Baseline Metrics Airtable schema + CSV template + setup docs
+- [ ] 03-02-PLAN.md — TDD: parse-runData parser for n8n execution metrics
+
+**Wave 2** *(depends on Wave 1)*
+- [ ] 03-03-PLAN.md — Measurement workflow JSON (triggers, Code node, Airtable writes)
 
 ### Phase 4: Feed Diversity Implementation
 **Goal**: 01e scanner discovers 3-10× more vacancies through multi-feed parallelization (sub-areas, EN/RU query synonyms, experience splits, professional_role IDs, work format splits), with safety/encoding/delay hardening
@@ -92,6 +99,6 @@
 |-------|-----------|----------------|--------|-----------|
 | 1. hh.ru RSS Scanner | v1.0 | 2/2 | Complete | 2026-06-05 |
 | 2. hh.ru Full Description Enrichment | v2.0 | 5/5 | Complete | 2026-06-06 |
-| 3. Baseline Diagnosis | v2.1 | 0/0 | Not started | - |
+| 3. Baseline Diagnosis | v2.1 | 0/3 | Not started | - |
 | 4. Feed Diversity Implementation | v2.1 | 0/0 | Not started | - |
 | 5. Verification | v2.1 | 0/0 | Not started | - |
