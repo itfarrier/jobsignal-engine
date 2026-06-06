@@ -46,7 +46,7 @@ started: Phase 02 UAT test 3
 
 ## Resolution
 
-root_cause: Dual failure — (1) Fetch Vacancy Page in n8n returned no parseable HTML body (empty data/body on error-continue path), so Merge Descriptions correctly fell back to RSS (_descriptionSource=rss); (2) Airtable Create wrote partial record because Pipeline.Source likely lacks hh.ru option in user's base and/or n8n Airtable node field schema is out of sync with the user's table, causing Source=LinkedIn coercion and missing text field writes.
+root_cause: "Primary — Fetch Vacancy Page onError continueRegularOutput delivers error objects without data/body; Merge gets empty rawHtml → RSS fallback. Secondary — Source=LinkedIn + Fit Tier pattern matches JobSpy/WF02 record, not 01e create; confirm -hhr job IDs. Pre-flight hh.ru Source option still required per AIRTABLE-SCHEMA.md (02-05)."
 fix:
 verification:
 files_changed: []

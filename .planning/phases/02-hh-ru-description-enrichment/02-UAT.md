@@ -61,7 +61,7 @@ blocked: 0
   reason: "User reported: Create Pipeline Records received input with thin RSS jobDescription and _descriptionSource=rss; Airtable output shows Source=LinkedIn with only Status/Fit Tier — Pipeline row essentially empty"
   severity: blocker
   test: 3
-  root_cause: "Dual: (1) Fetch Vacancy Page returned empty/error body in n8n so Merge fell back to RSS; (2) Airtable Pipeline.Source missing hh.ru option and/or stale n8n field schema caused partial write with Source=LinkedIn"
+  root_cause: "Confirmed: Fetch Vacancy Page swallows HTTP errors (continueRegularOutput) — error objects lack data/body so Merge falls back to RSS (_descriptionSource=rss). Parse logic works (3639 chars via curl). Source=LinkedIn + Fit Tier likely a pre-existing JobSpy row evaluated by WF02, not a successful 01e create — re-verify rows with Job ID suffix -hhr and Source=hh.ru. Still add hh.ru to Pipeline.Source per schema pre-flight (02-05)."
   artifacts:
     - path: "workflows/01e-scanner-hhru.json"
       issue: "Merge reads fetchResult.data||body — empty on fetch error-continue; needs fetch diagnostics and possibly browser-like headers/redirect handling"
