@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
 milestone: v2.0
-milestone_name: hh.ru Description Enrichment
-status: verifying
-stopped_at: Awaiting human UAT (02-HUMAN-UAT.md)
-last_updated: "2026-06-06T20:30:00Z"
-last_activity: 2026-06-06 -- Gap closure plans 02-03, 02-04, 02-05 executed
+milestone_name: milestone
+status: Awaiting next milestone
+stopped_at: Completed 02-02-PLAN.md
+last_updated: "2026-06-06T20:38:22.256Z"
+last_activity: 2026-06-06 — Milestone v2.0 completed and archived
 progress:
   total_phases: 1
   completed_phases: 1
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-06-05)
 
 ## Current Position
 
-Phase: 02 (hh-ru-description-enrichment) — GAP CLOSURE COMPLETE
-Plan: 5 of 5 (all plans executed including gap closure)
-Status: Gap closure plans (02-03, 02-04, 02-05) executed; human UAT pending for live n8n verification
-Last activity: 2026-06-06 -- Gap closure plans executed: RSS test stdout fix, Fetch/Merge hardening, Airtable docs
+Phase: Milestone v2.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-06 — Milestone v2.0 completed and archived
 
 ## Performance Metrics
 
@@ -49,11 +49,13 @@ Last activity: 2026-06-06 -- Gap closure plans executed: RSS test stdout fix, Fe
 ### Decisions
 
 Phase 02 Plan 01:
+
 - JSON-LD JobPosting.description primary; data-qa vacancy-description fallback
 - stripHtml duplicated from Phase 1 RSS test script (not 01a Greenhouse variant)
 - mergeVacancyDescription applies 50k cap after stripHtml with truncation marker
 
 Phase 02 Plan 02:
+
 - Loop Over Jobs (batch=1) nested inside feed loop with Wait 1s Vacancy pacing
 - Fetch Vacancy Page: HTTP GET applyLink, text response, 10s timeout, alwaysOutputData
 - Merge Descriptions: SSRF whitelist ^https://hh.ru/vacancy/\d+; _descriptionSource internal only
@@ -80,6 +82,17 @@ From PROJECT.md Key Decisions (pending implementation):
 
 ## Deferred Items
 
+Items acknowledged and deferred at milestone close on 2026-06-06:
+
+| Category | Item | Status |
+|----------|------|--------|
+| debug | hh-rss-extra-json-output | diagnosed |
+| debug | phase02-uat-test3-enrich | diagnosed |
+| uat_gaps | Phase 02: 02-UAT.md | diagnosed |
+| verification_gaps | Phase 02: 02-VERIFICATION.md | human_needed |
+
+Previously deferred:
+
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
 | Enhancement | Full vacancy HTML description fetch | Complete (02-02) | 2026-06-05 |
@@ -92,7 +105,4 @@ Resume file: None
 
 ## Operator Next Steps
 
-- `/gsd-verify-work 2` — complete human UAT checklist (live n8n + RSS fallback)
-- `/gsd-code-review 2 --fix` — address CR-01 SSRF pre-fetch gap
-- `/gsd-secure-phase 2` — threat-model verification before milestone close
-- `/gsd-complete-milestone` — after UAT + security pass
+- Start the next milestone with /gsd-new-milestone

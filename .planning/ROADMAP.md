@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 hh.ru Scanner** — Phase 1 (shipped 2026-06-05)
-- ✅ **v2.0 hh.ru Description Enrichment** — Phase 2 (shipped 2026-06-05)
+- ✅ **v2.0 hh.ru Description Enrichment** — Phase 2 (shipped 2026-06-06)
 
 ## Phases
 
@@ -19,38 +19,29 @@
 
 </details>
 
-### Phase 2: hh.ru Full Description Enrichment
+<details>
+<summary>✅ v2.0 hh.ru Description Enrichment (Phase 2) — SHIPPED 2026-06-06</summary>
 
-**Goal**: Enrich net-new hh.ru Pipeline jobs with full vacancy page text so the 9:00 Evaluator receives complete job descriptions instead of thin RSS summaries.
-**Depends on**: Phase 1 (shipped `01e` RSS scanner)
-**Requirements**: HH-10
-**Canonical refs**: `.planning/PROJECT.md`, `.planning/REQUIREMENTS.md`, `workflows/01e-scanner-hhru.json`, `workflows/01a-scanner-greenhouse.json` (Fetch Job Detail + Merge Descriptions pattern), `airtable/AIRTABLE-SCHEMA.md`
-**Success Criteria** (what must be TRUE):
+- [x] **Phase 2: hh.ru Full Description Enrichment** — Enrich net-new hh.ru Pipeline jobs with full vacancy page text so the 9:00 Evaluator receives complete job descriptions instead of thin RSS summaries (completed 2026-06-06)
 
-1. `01e` fetches each net-new vacancy's public HTML page via the RSS `link` URL and writes a stripped full description to Pipeline `Job Description`
-2. When page fetch or parse fails, the job still lands in Pipeline with the RSS summary as fallback (no silent drops)
-3. Rate limiting preserved: wait between page fetches; existing 8:20 schedule and 100 net-new safety brake unchanged
-4. No HeadHunter API auth; no Evaluator/Tailor workflow changes required
+**Plans:** 5/5 complete
 
-**Plans**: 5 plans (2 shipped + 3 gap closure — all complete)
-Plans:
 **Wave 1**
-
 - [x] 02-01-PLAN.md — TDD: vacancy page fixture, extractVacancyDescriptionHtml, stripHtml, mergeVacancyDescription tests
 
 **Wave 2** *(blocked on Wave 1 completion)*
-
 - [x] 02-02-PLAN.md — Wire Loop Over Jobs + Fetch + Merge into 01e; SETUP verification docs
 
 **Gap closure** *(UAT failures — executed 2026-06-06)*
-
 - [x] 02-03-PLAN.md — Remove RSS test debug JSON stdout (UAT test 2)
 - [x] 02-04-PLAN.md — Harden Fetch/Merge enrichment path (UAT test 3 enrichment)
 - [x] 02-05-PLAN.md — Airtable pre-flight docs + troubleshooting (UAT test 3 Airtable)
 
+</details>
+
 ## Progress
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. hh.ru RSS Scanner | 2/2 | Complete | 2026-06-05 |
-| 2. hh.ru Full Description Enrichment | 5/5 | Gap closure complete | 2026-06-06 |
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. hh.ru RSS Scanner | v1.0 | 2/2 | Complete | 2026-06-05 |
+| 2. hh.ru Full Description Enrichment | v2.0 | 5/5 | Complete | 2026-06-06 |

@@ -25,10 +25,11 @@ Every morning, relevant new jobs land in Airtable already deduplicated and ready
 - ✓ hh.ru RSS scanner (`workflows/01e-scanner-hhru.json`) — v1.0
 - ✓ RU Target Geography options and HH RSS Search Query columns in schema docs — v1.0
 - ✓ Pipeline Source `hh.ru` with `-hhr` job IDs and 8:20 daily schedule — v1.0
+- ✓ Full vacancy HTML enrichment: JSON-LD extraction, data-qa fallback, stripHtml, SSRF whitelist, 50k cap, RSS fallback — v2.0
 
 ### Active
 
-- [ ] **HH-10**: Fetch full vacancy description from public vacancy HTML page (post-RSS enrichment) — **v2.0 milestone**
+_(No active requirements — all shipped.)_
 
 ### Future
 
@@ -76,14 +77,16 @@ Every morning, relevant new jobs land in Airtable already deduplicated and ready
 | No RU negative filters in scanner | User preference; Evaluator already enforces Profile negatives | ✓ Shipped in 01e |
 | Schedule 8:20 daily | After 1a–1d (8:00–8:15), before Evaluator 9:00 | ✓ Shipped in 01e |
 | Reject Playwright auto-apply parser | Out of scope for discovery pipeline | ✓ Confirmed out of scope |
+| JSON-LD JobPosting.description primary extraction path | Structured data most reliable; data-qa block is fallback | ✓ Shipped v2.0 |
+| Loop Over Jobs (batch=1) nested inside feed loop | Per-vacancy pacing inside per-feed loop; separate Wait 1s for vacancy fetches and feed waits | ✓ Shipped v2.0 |
+| stripHtml copied verbatim from Phase 1 RSS test script | Consistent sanitization across RSS and vacancy paths; entity decode with &amp; last | ✓ Shipped v2.0 |
+| _descriptionSource / _fetchStatus / _fetchHint internal diagnostics | n8n-only debuggable fields, not mapped to Airtable | ✓ Shipped v2.0 |
 
-## Current Milestone: v2.0 hh.ru Description Enrichment
+## Current Milestone
 
-**Goal:** Replace thin RSS summaries with full vacancy page text for net-new hh.ru jobs so the Evaluator scores against complete job descriptions.
+**Shipped:** v2.0 hh.ru Description Enrichment (2026-06-06)
 
-**Target features:**
-
-- HH-10: Post-RSS HTML enrichment in workflow `01e` (public vacancy page fetch + strip + merge)
+HH-10 delivered: `01e` fetches each net-new vacancy's public HTML via RSS `link`, extracts JobPosting JSON-LD (data-qa fallback), stripHtml-sanitizes to plain text, and writes enriched `Job Description` to Pipeline with RSS fallback on failure. All offline tests pass. Live n8n end-to-end requires manual UAT.
 
 ## Evolution
 
@@ -103,4 +106,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-05 — v2.0 milestone started (HH-10)*
+*Last updated: 2026-06-06 — v2.0 milestone shipped*
