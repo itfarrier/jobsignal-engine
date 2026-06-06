@@ -32,7 +32,7 @@
 3. Rate limiting preserved: wait between page fetches; existing 8:20 schedule and 100 net-new safety brake unchanged
 4. No HeadHunter API auth; no Evaluator/Tailor workflow changes required
 
-**Plans**: 5 plans (2 shipped + 3 gap closure)
+**Plans**: 5 plans (2 shipped + 3 gap closure — all complete)
 Plans:
 **Wave 1**
 
@@ -42,15 +42,15 @@ Plans:
 
 - [x] 02-02-PLAN.md — Wire Loop Over Jobs + Fetch + Merge into 01e; SETUP verification docs
 
-**Gap closure** *(UAT failures — execute with `--gaps-only`)*
+**Gap closure** *(UAT failures — executed 2026-06-06)*
 
-- [ ] 02-03-PLAN.md — Remove RSS test debug JSON stdout (UAT test 2)
-- [ ] 02-04-PLAN.md — Harden Fetch/Merge enrichment path (UAT test 3 enrichment)
-- [ ] 02-05-PLAN.md — Airtable pre-flight docs + troubleshooting (UAT test 3 Airtable)
+- [x] 02-03-PLAN.md — Remove RSS test debug JSON stdout (UAT test 2)
+- [x] 02-04-PLAN.md — Harden Fetch/Merge enrichment path (UAT test 3 enrichment)
+- [x] 02-05-PLAN.md — Airtable pre-flight docs + troubleshooting (UAT test 3 Airtable)
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. hh.ru RSS Scanner | 2/2 | Complete | 2026-06-05 |
-| 2. hh.ru Full Description Enrichment | 2/2 | Complete | 2026-06-05 |
+| 2. hh.ru Full Description Enrichment | 5/5 | Gap closure complete | 2026-06-06 |

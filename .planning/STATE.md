@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: hh.ru Description Enrichment
-status: complete
-stopped_at: Completed 02-02-PLAN.md
-last_updated: "2026-06-05T20:25:38.000Z"
-last_activity: 2026-06-05 -- Completed 02-02 workflow vacancy enrichment
+status: verifying
+stopped_at: Awaiting human UAT (02-HUMAN-UAT.md)
+last_updated: "2026-06-06T20:30:00Z"
+last_activity: 2026-06-06 -- Gap closure plans 02-03, 02-04, 02-05 executed
 progress:
   total_phases: 1
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 5
+  completed_plans: 5
   percent: 100
 ---
 
@@ -25,16 +25,16 @@ See: .planning/PROJECT.md (updated 2026-06-05)
 
 ## Current Position
 
-Phase: 02 (hh-ru-description-enrichment) — COMPLETE
-Plan: 2 of 2
-Status: Milestone v2.0 deliverable shipped
-Last activity: 2026-06-05 -- Completed 02-02 workflow vacancy enrichment
+Phase: 02 (hh-ru-description-enrichment) — GAP CLOSURE COMPLETE
+Plan: 5 of 5 (all plans executed including gap closure)
+Status: Gap closure plans (02-03, 02-04, 02-05) executed; human UAT pending for live n8n verification
+Last activity: 2026-06-06 -- Gap closure plans executed: RSS test stdout fix, Fetch/Merge hardening, Airtable docs
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 3
+- Total plans completed: 6
 - Average duration: —
 - Total execution time: 0 hours
 
@@ -70,11 +70,13 @@ From PROJECT.md Key Decisions (pending implementation):
 
 ### Pending Todos
 
-None yet.
+- Human UAT: live n8n enrichment smoke test + RSS fallback path (`02-HUMAN-UAT.md`, 2 pending) — gap closure plans address root causes, re-import 01e first
+- Security audit: `/gsd-secure-phase 2` before milestone close
 
 ### Blockers/Concerns
 
-None.
+- CR-01 (critical): Fetch runs before URL whitelist — `/gsd-code-review 2 --fix` recommended
+- Security audit not yet run — `/gsd-secure-phase 2`
 
 ## Deferred Items
 
@@ -90,5 +92,7 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Re-import `01e-scanner-hhru.json` in n8n and execute manually to verify enriched Job Description lengths
-- Run milestone audit or `/gsd-complete-milestone` for v2.0
+- `/gsd-verify-work 2` — complete human UAT checklist (live n8n + RSS fallback)
+- `/gsd-code-review 2 --fix` — address CR-01 SSRF pre-fetch gap
+- `/gsd-secure-phase 2` — threat-model verification before milestone close
+- `/gsd-complete-milestone` — after UAT + security pass
