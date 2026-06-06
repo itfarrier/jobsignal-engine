@@ -184,6 +184,14 @@
             {
               "name": "User-Agent",
               "value": "Mozilla/5.0 (compatible; JobSignalEngine/2.0; +https://github.com/jobsignal-engine)"
+            },
+            {
+              "name": "Accept",
+              "value": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            },
+            {
+              "name": "Accept-Language",
+              "value": "ru-RU,ru;q=0.9,en;q=0.8"
             }
           ]
         },
@@ -194,13 +202,17 @@
               "responseFormat": "text",
               "outputPropertyName": "data"
             }
+          },
+          "redirect": {
+            "followRedirects": true,
+            "maxRedirects": 10
           }
         }
       },
       "id": "a1e00001-0017-4000-8000-000000000017",
       "name": "Fetch Vacancy Page",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
+      "typeVersion": 4.4,
       "position": [
         880,
         -48
@@ -210,7 +222,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Merge vacancy page description with RSS fallback — ported from test_hh_vacancy_parse.mjs\nconst job = $('Loop Over Jobs').item.json;\n\nif (job._empty) {\n  return [{ json: job }];\n}\n\nconst stripHtml = (html) => {\n  if (!html || typeof html !== 'string') return '';\n  let text = html;\n  text = text.split('&lt;').join('<');\n  text = text.split('&gt;').join('>');\n  text = text.split('&quot;').join('\"');\n  text = text.split('&#39;').join(\"'\");\n  text = text.split('&apos;').join(\"'\");\n  text = text.split('&nbsp;').join(' ');\n  text = text.split('&amp;').join('&');\n  let result = '';\n  let inTag = false;\n  for (let i = 0; i < text.length; i++) {\n    const ch = text[i];\n    if (ch === '<') {\n      inTag = true;\n      if (result.length > 0 && result[result.length - 1] !== ' ') result += ' ';\n      continue;\n    }\n    if (ch === '>') {\n      inTag = false;\n      continue;\n    }\n    if (!inTag) result += ch;\n  }\n  return result.replace(/\\s+/g, ' ').trim();\n};\n\nconst extractVacancyDescriptionHtml = (rawHtml) => {\n  if (!rawHtml || typeof rawHtml !== 'string') return '';\n  const ldRe = /<script[^>]*type=\"application\\/ld\\+json\"[^>]*>([\\s\\S]*?)<\\/script>/gi;\n  let m;\n  while ((m = ldRe.exec(rawHtml)) !== null) {\n    try {\n      const data = JSON.parse(m[1].trim());\n      const postings = Array.isArray(data) ? data : [data];\n      for (const item of postings) {\n        if (item && item['@type'] === 'JobPosting' && item.description) {\n          return String(item.description);\n        }\n      }\n    } catch {\n      // try next block\n    }\n  }\n  const qaRe = /data-qa=\"vacancy-description\"[^>]*>([\\s\\S]*?)<\\/div>\\s*<\\/div>/i;\n  const qa = rawHtml.match(qaRe);\n  if (qa && qa[1]) return qa[1];\n  return '';\n};\n\nconst rssFallback = job.jobDescription || '';\nconst applyLink = job.applyLink || '';\n\nif (!/^https:\\/\\/hh\\.ru\\/vacancy\\/\\d+/.test(applyLink)) {\n  return [{ json: { ...job, jobDescription: rssFallback, _descriptionSource: 'rss' } }];\n}\n\nconst fetchResult = $input.first().json;\nconst rawHtml = fetchResult.data || fetchResult.body || '';\n\nconst extractedHtml = extractVacancyDescriptionHtml(rawHtml);\nlet jobDescription = extractedHtml ? stripHtml(extractedHtml) : rssFallback;\nlet _descriptionSource = extractedHtml ? 'page' : 'rss';\n\nif (jobDescription.length > 50000) {\n  jobDescription = jobDescription.substring(0, 50000) + '\\n\\n[Description truncated]';\n}\n\nreturn [{ json: { ...job, jobDescription, _descriptionSource } }];"
+        "jsCode": "// Merge vacancy page description with RSS fallback — ported from test_hh_vacancy_parse.mjs\nconst job = $(\"Loop Over Jobs\").item.json;\n\nif (job._empty) {\n  return [{ json: job }];\n}\n\nconst stripHtml = (html) => {\n  if (!html || typeof html !== \"string\") return \"\";\n  let text = html;\n  text = text.split(\"&lt;\").join(\"<\");\n  text = text.split(\"&gt;\").join(\">\");\n  text = text.split(\"&quot;\").join(\"\"\");\n  text = text.split(\"&#39;\").join(\"'\");\n  text = text.split(\"&apos;\").join(\"'\");\n  text = text.split(\"&nbsp;\").join(\" \");\n  text = text.split(\"&amp;\").join(\"&\");\n  let result = \"\";\n  let inTag = false;\n  for (let i = 0; i < text.length; i++) {\n    const ch = text[i];\n    if (ch === \"<\") {\n      inTag = true;\n      if (result.length > 0 && result[result.length - 1] !== \" \") result += \" \";\n      continue;\n    }\n    if (ch === \">\") {\n      inTag = false;\n      continue;\n    }\n    if (!inTag) result += ch;\n  }\n  return result.replace(/\\s+/g, \" \").trim();\n};\n\nconst extractVacancyDescriptionHtml = (rawHtml) => {\n  if (!rawHtml || typeof rawHtml !== \"string\") return \"\";\n  const ldRe = /<script[^>]*type=\"application\\/ld\\+json\"[^>]*>([\\s\\S]*?)<\\/script>/gi;\n  let m;\n  while ((m = ldRe.exec(rawHtml)) !== null) {\n    try {\n      const data = JSON.parse(m[1].trim());\n      const postings = Array.isArray(data) ? data : [data];\n      for (const item of postings) {\n        if (item && item[\"@type\"] === \"JobPosting\" && item.description) {\n          return String(item.description);\n        }\n      }\n    } catch {\n      // try next block\n    }\n  }\n  const qaRe = /data-qa=\"vacancy-description\"[^>]*>([\\s\\S]*?)<\\/div>\\s*<\\/div>/i;\n  const qa = rawHtml.match(qaRe);\n  if (qa && qa[1]) return qa[1];\n  return \"\";\n};\n\nconst rssFallback = job.jobDescription || \"\";\nconst applyLink = job.applyLink || \"\";\n\nconst fetchResult = $input.first().json;\nlet rawHtml = \"\";\nif (typeof fetchResult.data === \"string\") rawHtml = fetchResult.data;\nelse if (typeof fetchResult.body === \"string\") rawHtml = fetchResult.body;\nelse if (typeof fetchResult.response === \"string\") rawHtml = fetchResult.response;\nelse if (typeof fetchResult === \"string\") rawHtml = fetchResult;\nrawHtml = (rawHtml || \"\").trim();\n\nlet _fetchStatus = \"skipped\";\nlet _fetchHtmlBytes = rawHtml.length;\nlet _fetchHint = \"\";\n\nif (!/^https:\\/\\/hh\\.ru\\/vacancy\\/\\d+/.test(applyLink)) {\n  _fetchStatus = \"skipped\";\n  _fetchHint = \"ssrf whitelist rejected\";\n  return [{ json: { ...job, jobDescription: rssFallback, _descriptionSource: \"rss\", _fetchStatus, _fetchHtmlBytes, _fetchHint } }];\n}\n\nif (fetchResult.error || fetchResult.message) {\n  _fetchStatus = \"error\";\n  _fetchHint = String(fetchResult.message || fetchResult.error || \"unknown error\").substring(0, 200);\n} else if (rawHtml.length < 100) {\n  _fetchStatus = \"empty\";\n  _fetchHint = \"rawHtml too short (\" + rawHtml.length + \" chars)\";\n} else {\n  _fetchStatus = \"ok\";\n}\n\nconst extractedHtml = extractVacancyDescriptionHtml(rawHtml);\nlet jobDescription = extractedHtml ? stripHtml(extractedHtml) : rssFallback;\nlet _descriptionSource = extractedHtml ? \"page\" : \"rss\";\n\nif (extractedHtml) {\n  _fetchHint = \"extracted json-ld\";\n} else if (rawHtml.length > 0) {\n  _fetchHint = \"no json-ld found, tried data-qa\";\n}\n\nif (jobDescription.length > 50000) {\n  jobDescription = jobDescription.substring(0, 50000) + \"\\n\\n[Description truncated]\";\n}\n\nreturn [{ json: { ...job, jobDescription, _descriptionSource, _fetchStatus, _fetchHtmlBytes, _fetchHint } }];"
       },
       "id": "a1e00001-0018-4000-8000-000000000018",
       "name": "Merge Descriptions",
