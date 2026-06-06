@@ -174,6 +174,16 @@ n8n typecast may **not** create new single-select options. Add these manually in
 2. **Search Queries → Source Type:** add HH RSS
 3. **Pipeline → Source:** add `hh.ru`
 
+### Troubleshooting 01e Pipeline writes
+
+| Symptom | Likely cause | Fix |
+|---------|-------------|-----|
+| Source shows LinkedIn instead of hh.ru | Pipeline.Source missing `hh.ru` option; n8n coerced/defaulted invalid select | Add `hh.ru` option manually; refresh Create Pipeline Records schema in n8n (see [SETUP.md pre-flight](../docs/SETUP.md#17-01e-hhru-pre-flight-required-before-first-run)) |
+| Only Status / Fit Tier populated; job fields empty | Stale n8n field schema or column name mismatch | Refresh schema; verify Create node maps Job Title, Company, Job Description, etc. |
+| Job Description thin (~200 chars), _descriptionSource=rss in n8n | Vacancy page fetch returned empty HTML (see workflow diagnostics) | Complete SETUP pre-flight; re-import 01e after fetch hardening; inspect Fetch Vacancy Page node output |
+
+> n8n typecast does **not** create new single-select options — the manual Airtable UI step is mandatory.
+
 ---
 
 ## Recommended Airtable Views

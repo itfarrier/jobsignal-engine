@@ -91,6 +91,19 @@ You'll need these for the workflow configurations:
 
 You'll need the Pipeline table ID and (if using JobSpy) the Search Queries table ID when configuring workflows.
 
+### 1.7 01e hh.ru Pre-flight (required before first run)
+
+Before importing and running `01e-scanner-hhru.json`, complete these manual steps in Airtable (n8n typecast cannot auto-create these):
+
+1. **Pipeline → Source:** manually add single-select option `hh.ru` in Airtable UI. See [AIRTABLE-SCHEMA.md Manual Airtable Setup](#).
+2. **Search Queries → Source Type:** add `HH RSS` if using manual HH RSS query rows.
+3. **Profile → Target Geography:** add Russia / Moscow / Saint Petersburg / Remote Russia if using auto-feeds.
+4. **n8n schema refresh:** after any Airtable field-option change, open `01e` → Create Pipeline Records → refresh/re-select base and Pipeline table so field mappings match live schema.
+5. **Re-import workflow:** pull latest `workflows/01e-scanner-hhru.json` and import in n8n before manual test execute.
+6. **Success criteria:** new Pipeline rows show Source=`hh.ru`, Job ID ends with `-hhr`, Job Description substantially longer than RSS summary (~500+ chars when enrichment succeeds).
+
+See [`airtable/AIRTABLE-SCHEMA.md`](../airtable/AIRTABLE-SCHEMA.md) for troubleshooting partial writes and wrong Source values.
+
 ---
 
 ## Self-Hosted Setup
@@ -350,7 +363,7 @@ n8n Desktop only runs when your machine is on. Workflows fire on their schedule,
 After completing any deployment mode, run this checklist:
 
 1. **Scanner test**: Execute Workflow 01a manually. Check your Pipeline table — do new jobs appear with Status: New?
-2. **hh.ru RSS smoke** (optional): `curl -sL -o /dev/null -w "%{http_code}" "https://hh.ru/search/vacancy/rss?text=test&area=113"` should print `200`. After importing `01e-scanner-hhru.json`, execute it manually and confirm new Pipeline rows have **Source** = `hh.ru` and **Job ID** ending with `-hhr`. Workflow 01e fetches each vacancy's public HTML page after RSS parse (1 second between page fetches) and writes the full stripped description to **Job Description** — substantially longer than the RSS summary (~500+ characters for typical vacancies), with readable plain text and no HTML tags. Offline parse checks: `node scripts/test_hh_rss_parse.mjs` and `node scripts/test_hh_vacancy_parse.mjs` should both exit 0.
+2. **hh.ru RSS smoke** (optional): complete [01e pre-flight](#17-01e-hhru-pre-flight-required-before-first-run) first. Then `curl -sL -o /dev/null -w "%{http_code}" "https://hh.ru/search/vacancy/rss?text=test&area=113"` should print `200`. After importing `01e-scanner-hhru.json`, execute it manually and confirm new Pipeline rows have **Source** = `hh.ru` and **Job ID** ending with `-hhr`. Workflow 01e fetches each vacancy's public HTML page after RSS parse (1 second between page fetches) and writes the full stripped description to **Job Description** — substantially longer than the RSS summary (~500+ characters for typical vacancies), with readable plain text and no HTML tags. Offline parse checks: `node scripts/test_hh_rss_parse.mjs` and `node scripts/test_hh_vacancy_parse.mjs` should both exit 0.
 3. **Evaluator test**: Execute Workflow 02. Do the New jobs now have scores, fit tiers, and reasoning?
 4. **Alert test**: If any job scored High Fit, did you receive an email?
 5. **Digest test**: Execute Workflow 06. Did you receive a daily digest email?
