@@ -23,6 +23,7 @@ To save time, import the CSV templates from the `airtable/templates/` folder ins
 | **Tracked Companies** | 139 pre-loaded | Companies to scan daily. Remove any you don't want — keep what's relevant to your industry. |
 | **Pipeline** | Auto-populated | Every discovered job with full lifecycle tracking. |
 | **Search Queries** | User-configured | JobSpy search parameters (self-hosted only). |
+| **Baseline Metrics** | Auto-populated | Per-run metrics from 01e measurement workflow, including per-node item counts, error details, and Profile snapshot. |
 
 ---
 
@@ -163,6 +164,32 @@ Enabled rows with `Source Type = HH RSS` merge with Profile auto-feeds in scanne
 | Query | Source Type | Query String | Title Keywords | Location | Source Tag | Enabled |
 |-------|-------------|--------------|----------------|----------|------------|---------|
 | Python RU manual | HH RSS | python developer | Python, FastAPI | 113 | RU Hunter | ✓ |
+
+---
+
+## Baseline Metrics Table
+
+Created and auto-populated by the Phase 3 measurement workflow after each 01e hh.ru run. Stores per-execution metrics for baseline diagnosis (Phase 5 comparison).
+
+After importing the CSV template, update these field types:
+
+| Field | Type | Auto-populated | Notes |
+|-------|------|:--------------:|-------|
+| Execution ID | Text | ✅ | n8n execution ID of the measured 01e run |
+| Run Timestamp | Date (DateTime) | ✅ | When the 01e execution started |
+| Execution Status | Single select | ✅ | Options: Success, Error |
+| Feeds Generated | Number (Integer) | ✅ | Count of feed URLs from `Build Feed List` |
+| Total RSS Items | Number (Integer) | ✅ | Raw RSS items across all feeds |
+| After Geography Filter | Number (Integer) | ✅ | Items that passed `Parse & Filter Jobs` |
+| After Dedup | Number (Integer) | ✅ | Items after `Aggregate All Jobs` (within-run dedup) |
+| Net New Pipeline Records | Number (Integer) | ✅ | Items after `Deduplicate vs Pipeline` (non-_empty) |
+| Pipeline Records Created | Number (Integer) | ✅ | Records created by `Create Pipeline Records` |
+| Run Duration Seconds | Number (Decimal) | ✅ | 01e execution wall clock time |
+| Error Details | Long text | ✅ | JSON string with error message/node info (null if success) |
+| Per Feed Items | Long text | ✅ | JSON array: items per feed index |
+| Per Feed After Geo | Long text | ✅ | JSON array: items after geo filter per feed index |
+| Profile Snapshot | Long text | ✅ | JSON string of the Profile row at time of measurement (D-07) |
+| Notes | Long text | | Human-readable notes about this baseline run |
 
 ---
 
