@@ -61,79 +61,73 @@ export default function parseRunData(executionData) {
     };
   }
 
-  // --- Helper: count items across all loop iterations, filtering _empty ---
-  function sumNodeRealItems(nodeName) {
+  // --- Shared helpers ---
+
+  /** Extract primary output[0] array from a runData entry, null-safe. */
+  function getOutput(entry) {
+    return entry?.output?.[0] || [];
+  }
+
+  /** Filter n8n items to exclude _empty sentinel markers. */
+  function filterReal(arr) {
+    return (arr || []).filter((item) => item && item.json && !item.json._empty);
+  }
+
+  /** Count real (non-_empty) items across all loop iterations of a node. */
+  function sumNodeReal(nodeName) {
     const entries = runData[nodeName];
     if (!entries || !Array.isArray(entries)) return 0;
     return entries.reduce((total, entry) => {
-      const output0 = entry?.output?.[0];
-      if (!output0 || !Array.isArray(output0)) return total;
-      const realItems = output0.filter(
-        (item) => item && item.json && !item.json._empty
-      );
-      return total + realItems.length;
+      return total + filterReal(getOutput(entry)).length;
     }, 0);
   }
 
-  // --- Helper: count all items (including _empty) across loop iterations ---
-  function sumNodeAllItems(nodeName) {
+  /** Count ALL items (including _empty) across all loop iterations of a node. */
+  function sumNodeAll(nodeName) {
     const entries = runData[nodeName];
     if (!entries || !Array.isArray(entries)) return 0;
     return entries.reduce((total, entry) => {
-      const output0 = entry?.output?.[0];
-      if (!output0 || !Array.isArray(output0)) return total;
-      return total + output0.length;
+      return total + getOutput(entry).length;
     }, 0);
   }
 
-  // --- Helper: count items in a single-output node ---
-  function singleNodeRealItems(nodeName) {
-    const entry = runData[nodeName]?.[0];
-    const output0 = entry?.output?.[0];
-    if (!output0 || !Array.isArray(output0)) return 0;
-    return output0.filter((item) => item && item.json && !item.json._empty).length;
+  /** Count real (non-_empty) items in a single-output (non-loop) node. */
+  function singleReal(nodeName) {
+    return filterReal(getOutput(runData[nodeName]?.[0])).length;
   }
 
-  // --- Helper: count ALL items in a single-output node (including _empty) ---
-  function singleNodeAllItems(nodeName) {
-    return runData[nodeName]?.[0]?.output?.[0]?.length || 0;
+  /** Count ALL items in a single-output node. */
+  function singleAll(nodeName) {
+    return getOutput(runData[nodeName]?.[0]).length;
   }
 
   // --- Feeds generated ---
-  const feedsGenerated = singleNodeAllItems('Build Feed List');
+  const feedsGenerated = singleAll('Build Feed List');
 
   // --- Total RSS items (summed across loop iterations) ---
-  const totalRssItems = sumNodeRealItems('RSS Feed Read');
+  const totalRssItems = sumNodeReal('RSS Feed Read');
 
   // --- Per-feed breakdown ---
   const perFeedItems = (runData['RSS Feed Read'] || []).map((entry, idx) => {
-    const output0 = entry?.output?.[0] || [];
-    const total = output0.length;
-    const items = output0.filter(
-      (item) => item && item.json && !item.json._empty
-    ).length;
-    return { feedIndex: idx, items, total };
+    const arr = getOutput(entry);
+    return { feedIndex: idx, items: filterReal(arr).length, total: arr.length };
   });
 
   // --- After geo filter (summed across loop iterations) ---
-  const afterGeoFilter = sumNodeRealItems('Parse & Filter Jobs');
+  const afterGeoFilter = sumNodeReal('Parse & Filter Jobs');
 
   const perFeedAfterGeo = (runData['Parse & Filter Jobs'] || []).map((entry, idx) => {
-    const output0 = entry?.output?.[0] || [];
-    const items = output0.filter(
-      (item) => item && item.json && !item.json._empty
-    ).length;
-    return { feedIndex: idx, items };
+    return { feedIndex: idx, items: filterReal(getOutput(entry)).length };
   });
 
   // --- After within-run dedup ---
-  const afterDedup = singleNodeRealItems('Aggregate All Jobs');
+  const afterDedup = singleReal('Aggregate All Jobs');
 
   // --- Net-new Pipeline records (filter _empty) ---
-  const netNewPipelineRecords = singleNodeRealItems('Deduplicate vs Pipeline');
+  const netNewPipelineRecords = singleReal('Deduplicate vs Pipeline');
 
   // --- Pipeline records created ---
-  const pipelineRecordsCreated = singleNodeAllItems('Create Pipeline Records');
+  const pipelineRecordsCreated = singleAll('Create Pipeline Records');
 
   // --- Validity ---
   // valid is false if any required node is missing OR if feedsGenerated === 0
