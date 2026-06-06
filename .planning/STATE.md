@@ -4,12 +4,12 @@ milestone: v2.1
 milestone_name: 01e Coverage Improvement
 status: executing
 stopped_at: Phase 3 context gathered
-last_updated: "2026-06-06T22:48:40.707Z"
-last_activity: 2026-06-07 — Roadmap created for v2.1 (Phases 3-5)
+last_updated: "2026-06-06T22:54:21.328Z"
+last_activity: 2026-06-06 -- Phase 03 execution started
 progress:
   total_phases: 3
   completed_phases: 0
-  total_plans: 0
+  total_plans: 3
   completed_plans: 0
   percent: 0
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-06)
 
 **Core value:** Every morning, relevant new jobs land in Airtable already deduplicated and ready for AI scoring — including hh.ru roles matching your Profile.
-**Current focus:** Phase 3 — Baseline Diagnosis
+**Current focus:** Phase 03 — baseline-diagnosis
 
 ## Current Position
 
-Phase: 3 of 5 (Baseline Diagnosis)
-Plan: — (ready to plan)
-Status: Ready to execute
-Last activity: 2026-06-07 — Roadmap created for v2.1 (Phases 3-5)
+Phase: 03 (baseline-diagnosis) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 03
+Last activity: 2026-06-06 -- Phase 03 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
