@@ -150,7 +150,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Parse hh.ru RSS items for current feed — title keywords, geography, FNV-1a job IDs\nconst feedItem = $('Loop Over Feeds').item.json;\nif (feedItem._empty) {\n  return [{ json: { _empty: true, _message: 'Empty feed batch' } }];\n}\n\nconst profileData = $('Get Profile').first().json;\nconst geoField = profileData.fields\n  ? profileData.fields['Target Geography']\n  : profileData['Target Geography'];\nconst userGeographies = Array.isArray(geoField) ? geoField : [];\n\nconst GEO_MAP = {\n  Canada: ['canada', 'toronto', 'vancouver', 'montreal', 'ottawa', 'calgary', 'mississauga', 'remote - canada', 'remote canada'],\n  USA: ['united states', 'usa', 'us only', 'remote - us', 'remote us', 'new york', 'san francisco', 'los angeles', 'seattle', 'chicago', 'austin', 'boston'],\n  'Remote Global': ['remote', 'worldwide', 'global', 'anywhere'],\n  'Remote North America': ['remote - north america', 'remote north america', 'remote - na', 'remote us', 'remote canada'],\n  'Remote Canada': ['remote - canada', 'remote canada'],\n  EMEA: ['emea', 'europe', 'london', 'berlin', 'paris', 'amsterdam', 'dublin'],\n  'Remote Europe': ['remote - europe', 'remote europe', 'remote - emea', 'remote emea'],\n  UK: ['united kingdom', 'uk', 'london', 'manchester', 'edinburgh'],\n  Germany: ['germany', 'berlin', 'munich', 'hamburg', 'frankfurt'],\n  Netherlands: ['netherlands', 'amsterdam', 'rotterdam', 'the hague'],\n  France: ['france', 'paris', 'lyon', 'marseille'],\n  Ireland: ['ireland', 'dublin', 'cork'],\n  Australia: ['australia', 'sydney', 'melbourne', 'brisbane'],\n  Singapore: ['singapore'],\n  India: ['india', 'bangalore', 'bengaluru', 'mumbai', 'hyderabad', 'pune', 'delhi', 'gurgaon', 'noida'],\n  APAC: ['apac', 'asia', 'singapore', 'tokyo', 'sydney', 'australia'],\n  'Remote APAC': ['remote - apac', 'remote apac', 'remote - asia', 'remote asia'],\n  'Remote LATAM': ['remote - latam', 'remote latam', 'remote - latin america'],\n  Russia: ['россия', 'russia', 'рф'],\n  Moscow: ['москва', 'moscow', 'мск'],\n  'Saint Petersburg': ['санкт-петербург', 'saint petersburg', 'spb', 'питер'],\n  'Remote Russia': ['удаленно', 'удалённо', 'remote', 'дистанцион'],\n};\n\nconst allowedLocationKeywords = new Set();\nfor (const geo of userGeographies) {\n  const geoKws = GEO_MAP[geo] || [];\n  geoKws.forEach((kw) => allowedLocationKeywords.add(kw));\n}\n\nconst stripHtml = (html) => {\n  if (!html || typeof html !== 'string') return '';\n  let text = html;\n  text = text.split('&lt;').join('<');\n  text = text.split('&gt;').join('>');\n  text = text.split('&quot;').join('\"');\n  text = text.split('&#39;').join(\"'\");\n  text = text.split('&apos;').join(\"'\");\n  text = text.split('&nbsp;').join(' ');\n  text = text.split('&amp;').join('&');\n  let result = '';\n  let inTag = false;\n  for (let i = 0; i < text.length; i++) {\n    const ch = text[i];\n    if (ch === '<') {\n      inTag = true;\n      if (result.length > 0 && result[result.length - 1] !== ' ') result += ' ';\n      continue;\n    }\n    if (ch === '>') {\n      inTag = false;\n      continue;\n    }\n    if (!inTag) result += ch;\n  }\n  return result.replace(/\\s+/g, ' ').trim();\n};\n\nconst parseHhDescription = (stripped) => {\n  const companyMatch = stripped.match(/Вакансия компании:\\s*(.+?)(?=\\s+Создана:|$)/i);\n  const regionMatch = stripped.match(/Регион:\\s*(.+?)(?=\\s+Предполагаемый|$)/i);\n  const salaryMatch = stripped.match(/Предполагаемый уровень месячного дохода:\\s*(.+?)$/i);\n  const company = companyMatch ? companyMatch[1].trim() : 'Unknown';\n  const region = regionMatch ? regionMatch[1].trim() : '';\n  let salaryInfo = '';\n  if (salaryMatch) {\n    const raw = salaryMatch[1].trim();\n    if (raw && !/не\\s+указан/i.test(raw)) salaryInfo = raw;\n  }\n  return { company, region, salaryInfo };\n};\n\nconst matchesGeography = (title, region, description) => {\n  if (allowedLocationKeywords.size === 0) return true;\n  const blob = (title + ' ' + region + ' ' + description).toLowerCase();\n  for (const kw of allowedLocationKeywords) {\n    if (blob.includes(kw)) return true;\n  }\n  return false;\n};\n\nconst titleKeywordsRaw = feedItem.titleKeywords || '';\nconst titleKeywords = titleKeywordsRaw\n  .split(',')\n  .map((k) => k.trim().toLowerCase())\n  .filter((k) => k.length > 0);\n\nconst sourceQuery = feedItem.sourceQuery || '';\nconst sourceTag = feedItem.sourceTag || '';\n\nconst fnv1aHash = (str) => {\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < str.length; i++) {\n    hash ^= str.charCodeAt(i);\n    hash = Math.imul(hash, 0x01000193);\n  }\n  return (hash >>> 0).toString(16).padStart(8, '0');\n};\n\nconst rssItems = $input.all();\nconst seen = new Set();\nconst out = [];\n\nfor (const item of rssItems) {\n  const row = item.json;\n  const title = row.title || '';\n  const applyLink = row.link || '';\n  if (!title || !applyLink) continue;\n\n  if (titleKeywords.length > 0) {\n    const t = title.toLowerCase();\n    if (!titleKeywords.some((kw) => t.includes(kw))) continue;\n  }\n\n  const rawHtml = row.content || row.description || row.contentSnippet || '';\n  const stripped = stripHtml(typeof rawHtml === 'string' ? rawHtml : String(rawHtml));\n  const { company, region, salaryInfo } = parseHhDescription(stripped);\n\n  if (!matchesGeography(title, region, stripped)) continue;\n\n  const hashInput = title + '|' + company + '|' + applyLink;\n  const jobId = fnv1aHash(hashInput) + '-hhr';\n  if (seen.has(jobId)) continue;\n  seen.add(jobId);\n\n  let jobDescription = stripped;\n  if (jobDescription.length > 50000) {\n    jobDescription = jobDescription.substring(0, 50000) + '\\n\\n[Description truncated]';\n  }\n\n  out.push({\n    json: {\n      jobId,\n      jobTitle: title,\n      company,\n      location: region || 'Not specified',\n      applyLink,\n      jobDescription,\n      source: 'hh.ru',\n      sourceQuery,\n      sourceTag,\n      discoveryDate: new Date().toISOString().split('T')[0],\n      salaryInfo,\n    },\n  });\n}\n\nif (out.length === 0) {\n  return [{ json: { _empty: true, _message: 'No jobs passed filters for feed: ' + (sourceQuery || feedItem.feedUrl) } }];\n}\n\nreturn out;"
+        "jsCode": "// Parse hh.ru RSS items for current feed — title keywords, geography, FNV-1a job IDs\nconst feedItem = $('Loop Over Feeds').item.json;\nif (feedItem._empty) {\n  return [{ json: { _empty: true, _message: 'Empty feed batch' } }];\n}\n\nconst profileData = $('Get Profile').first().json;\nconst geoField = profileData.fields\n  ? profileData.fields['Target Geography']\n  : profileData['Target Geography'];\nconst userGeographies = Array.isArray(geoField) ? geoField : [];\n\nconst GEO_MAP = {\n  Canada: ['canada', 'toronto', 'vancouver', 'montreal', 'ottawa', 'calgary', 'mississauga', 'remote - canada', 'remote canada'],\n  USA: ['united states', 'usa', 'us only', 'remote - us', 'remote us', 'new york', 'san francisco', 'los angeles', 'seattle', 'chicago', 'austin', 'boston'],\n  'Remote Global': ['remote', 'worldwide', 'global', 'anywhere'],\n  'Remote North America': ['remote - north america', 'remote north america', 'remote - na', 'remote us', 'remote canada'],\n  'Remote Canada': ['remote - canada', 'remote canada'],\n  EMEA: ['emea', 'europe', 'london', 'berlin', 'paris', 'amsterdam', 'dublin'],\n  'Remote Europe': ['remote - europe', 'remote europe', 'remote - emea', 'remote emea'],\n  UK: ['united kingdom', 'uk', 'london', 'manchester', 'edinburgh'],\n  Germany: ['germany', 'berlin', 'munich', 'hamburg', 'frankfurt'],\n  Netherlands: ['netherlands', 'amsterdam', 'rotterdam', 'the hague'],\n  France: ['france', 'paris', 'lyon', 'marseille'],\n  Ireland: ['ireland', 'dublin', 'cork'],\n  Australia: ['australia', 'sydney', 'melbourne', 'brisbane'],\n  Singapore: ['singapore'],\n  India: ['india', 'bangalore', 'bengaluru', 'mumbai', 'hyderabad', 'pune', 'delhi', 'gurgaon', 'noida'],\n  APAC: ['apac', 'asia', 'singapore', 'tokyo', 'sydney', 'australia'],\n  'Remote APAC': ['remote - apac', 'remote apac', 'remote - asia', 'remote asia'],\n  'Remote LATAM': ['remote - latam', 'remote latam', 'remote - latin america'],\n  Russia: ['россия', 'russia', 'рф'],\n  Moscow: ['москва', 'moscow', 'мск'],\n  'Saint Petersburg': ['санкт-петербург', 'saint petersburg', 'spb', 'питер'],\n  'Remote Russia': ['удаленно', 'удалённо', 'remote', 'дистанцион'],\n};\n\nconst allowedLocationKeywords = new Set();\nfor (const geo of userGeographies) {\n  const geoKws = GEO_MAP[geo] || [];\n  geoKws.forEach((kw) => allowedLocationKeywords.add(kw));\n}\n\nconst stripHtml = (html) => {\n  if (!html || typeof html !== 'string') return '';\n  let text = html;\n  text = text.split('&lt;').join('<');\n  text = text.split('&gt;').join('>');\n  text = text.split('&quot;').join('\"');\n  text = text.split('&#39;').join(\"'\");\n  text = text.split('&apos;').join(\"'\");\n  text = text.split('&nbsp;').join(' ');\n  text = text.split('&amp;').join('&');\n  let result = '';\n  let inTag = false;\n  for (let i = 0; i < text.length; i++) {\n    const ch = text[i];\n    if (ch === '<') {\n      inTag = true;\n      if (result.length > 0 && result[result.length - 1] !== ' ') result += ' ';\n      continue;\n    }\n    if (ch === '>') {\n      inTag = false;\n      continue;\n    }\n    if (!inTag) result += ch;\n  }\n  return result.replace(/\\s+/g, ' ').trim();\n};\n\nconst parseHhDescription = (stripped) => {\n  const companyMatch = stripped.match(/Вакансия компании:\\s*(.+?)(?=\\s+Создана:|$)/i);\n  const regionMatch = stripped.match(/Регион:\\s*(.+?)(?=\\s+Предполагаемый|$)/i);\n  const salaryMatch = stripped.match(/Предполагаемый уровень месячного дохода:\\s*(.+?)$/i);\n  const company = companyMatch ? companyMatch[1].trim() : 'Unknown';\n  const region = regionMatch ? regionMatch[1].trim() : '';\n  let salaryInfo = '';\n  if (salaryMatch) {\n    const raw = salaryMatch[1].trim();\n    if (raw && !/не\\s+указан/i.test(raw)) salaryInfo = raw;\n  }\n  return { company, region, salaryInfo };\n};\n\nconst matchesGeography = (title, region, description) => {\n  if (allowedLocationKeywords.size === 0) return true;\n  const blob = (title + ' ' + region + ' ' + description).toLowerCase();\n  for (const kw of allowedLocationKeywords) {\n    if (blob.includes(kw)) return true;\n  }\n  return false;\n};\n\nconst titleKeywordsRaw = feedItem.titleKeywords || '';\nconst titleKeywords = titleKeywordsRaw\n  .split(',')\n  .map((k) => k.trim().toLowerCase())\n  .filter((k) => k.length > 0);\n\nconst sourceQuery = feedItem.sourceQuery || '';\nconst sourceTag = feedItem.sourceTag || '';\n\nconst fnv1aHash = (str) => {\n  let hash = 0x811c9dc5;\n  for (let i = 0; i < str.length; i++) {\n    hash ^= str.charCodeAt(i);\n    hash = Math.imul(hash, 0x01000193);\n  }\n  return (hash >>> 0).toString(16).padStart(8, '0');\n};\n\nconst rssItems = $input.all();\nconst seen = new Set();\nconst out = [];\nconst feedIndex = $index || 0;\nconst realRssInFeed = rssItems.filter(i => i.json && !i.json._empty).length;\n\nfor (const item of rssItems) {\n  const row = item.json;\n  const title = row.title || '';\n  const applyLink = row.link || '';\n  if (!title || !applyLink) continue;\n\n  if (titleKeywords.length > 0) {\n    const t = title.toLowerCase();\n    if (!titleKeywords.some((kw) => t.includes(kw))) continue;\n  }\n\n  const rawHtml = row.content || row.description || row.contentSnippet || '';\n  const stripped = stripHtml(typeof rawHtml === 'string' ? rawHtml : String(rawHtml));\n  const { company, region, salaryInfo } = parseHhDescription(stripped);\n\n  if (!matchesGeography(title, region, stripped)) continue;\n\n  const hashInput = title + '|' + company + '|' + applyLink;\n  const jobId = fnv1aHash(hashInput) + '-hhr';\n  if (seen.has(jobId)) continue;\n  seen.add(jobId);\n\n  let jobDescription = stripped;\n  if (jobDescription.length > 50000) {\n    jobDescription = jobDescription.substring(0, 50000) + '\\n\\n[Description truncated]';\n  }\n\n  out.push({\n    json: {\n      jobId,\n      jobTitle: title,\n      company,\n      location: region || 'Not specified',\n      applyLink,\n      jobDescription,\n      source: 'hh.ru',\n      sourceQuery,\n      sourceTag,\n      discoveryDate: new Date().toISOString().split('T')[0],\n      salaryInfo,\n    },\n  });\n}\n\nif (out.length === 0) {\n  return [{ json: { _empty: true, _message: 'No jobs passed filters for feed: ' + (sourceQuery || feedItem.feedUrl) } }];\n}\n\nreturn out;"
       },
       "id": "a1e00001-0008-4000-8000-000000000008",
       "name": "Parse & Filter Jobs",
@@ -802,6 +802,91 @@
         -1120,
         -720
       ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Capture baseline metrics from all stages of 01e execution\nconst feedList = $items(\"Build Feed List\");\nconst feedsGenerated = feedList ? feedList.length : 0;\n\n// Get items from nodes (may be inside loops — $items works from done path)\nlet rssItems = [];\ntry { rssItems = $items(\"RSS Feed Read\") || []; } catch(e) { rssItems = []; }\nlet parsedItems = [];\ntry { parsedItems = $items(\"Parse & Filter Jobs\") || []; } catch(e) { parsedItems = []; }\nlet aggItems = [];\ntry { aggItems = $items(\"Aggregate All Jobs\") || []; } catch(e) { aggItems = []; }\nlet dedupItems = [];\ntry { dedupItems = $items(\"Deduplicate vs Pipeline\") || []; } catch(e) { dedupItems = []; }\nlet pipelineItems = [];\ntry { pipelineItems = $items(\"Create Pipeline Records\") || []; } catch(e) { pipelineItems = []; }\n\nconst totalRssItems = rssItems.length;\nconst realRssItems = rssItems.filter(i => i.json && !i.json._empty).length;\nconst afterGeoFilter = parsedItems.filter(i => i.json && !i.json._empty).length;\nconst afterDedup = aggItems.filter(i => i.json && !i.json._empty && i.json.jobId).length;\nconst dedupOutput = dedupItems.filter(i => i.json && !i.json._empty);\nconst netNewPipelineRecords = dedupOutput.length;\nconst pipelineRecordsCreated = pipelineItems.length;\nconst valid = feedsGenerated > 0;\n\n// Per-feed breakdown\nconst perFeedItems = {};\nconst perFeedAfterGeo = {};\nfor (const item of rssItems) {\n  if (!item.json || item.json._empty) continue;\n  const idx = item.json.feedIndex !== undefined ? item.json.feedIndex : 0;\n  if (!perFeedItems[idx]) perFeedItems[idx] = { total: 0, real: 0 };\n  perFeedItems[idx].total++;\n  if (!item.json._empty) perFeedItems[idx].real++;\n}\nfor (const item of parsedItems) {\n  if (!item.json || item.json._empty) continue;\n  const idx = item.json.feedIndex !== undefined ? item.json.feedIndex : 0;\n  if (!perFeedAfterGeo[idx]) perFeedAfterGeo[idx] = { items: 0, feedTotalRss: item.json.feedTotalRss || 0 };\n  perFeedAfterGeo[idx].items++;\n}\n\n// Profile snapshot\nlet profileRow = {};\ntry { profileRow = $(\"Get Profile\").first().json || {}; } catch(e) { profileRow = {}; }\n\nreturn [{\n  json: {\n    executionId: \"inline-\" + (typeof $execution !== \"undefined\" && $execution ? $execution.id || \"01e\" : \"01e\"),\n    executionStatus: \"success\",\n    valid,\n    error: null,\n    errorDetails: null,\n    startedAt: new Date().toISOString(),\n    stoppedAt: new Date().toISOString(),\n    runDurationSeconds: 0,\n    feedsGenerated,\n    totalRssItems,\n    afterGeoFilter,\n    afterDedup,\n    netNewPipelineRecords,\n    pipelineRecordsCreated,\n    perFeedItems: JSON.stringify(Object.entries(perFeedItems).map(([k,v]) => ({ feedIndex: parseInt(k), items: v.real, total: v.total }))),\n    perFeedAfterGeo: JSON.stringify(Object.entries(perFeedAfterGeo).map(([k,v]) => ({ feedIndex: parseInt(k), items: v.items }))),\n    profileSnapshot: JSON.stringify(profileRow),\n    notes: \"Inline capture from 01e\"\n  }\n}];\n"
+      },
+      "id": "a1e00001-0020-4000-8000-000000000020",
+      "name": "Capture Baseline Metrics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1648,
+        -400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appE808oZ5gTSQzUY",
+          "mode": "list",
+          "cachedResultName": "Job Signal Engine",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblBaselineMetrics",
+          "mode": "list",
+          "cachedResultName": "Baseline Metrics",
+          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tblBaselineMetrics"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Execution ID": "={{ $json.executionId }}",
+            "Run Timestamp": "={{ $json.startedAt }}",
+            "Execution Status": "={{ $json.executionStatus }}",
+            "Feeds Generated": "={{ $json.feedsGenerated }}",
+            "Total RSS Items": "={{ $json.totalRssItems }}",
+            "After Geography Filter": "={{ $json.afterGeoFilter }}",
+            "After Dedup": "={{ $json.afterDedup }}",
+            "Net New Pipeline Records": "={{ $json.netNewPipelineRecords }}",
+            "Pipeline Records Created": "={{ $json.pipelineRecordsCreated }}",
+            "Run Duration Seconds": "={{ $json.runDurationSeconds }}",
+            "Error Details": "={{ $json.errorDetails }}",
+            "Per Feed Items": "={{ $json.perFeedItems }}",
+            "Per Feed After Geo": "={{ $json.perFeedAfterGeo }}",
+            "Profile Snapshot": "={{ $json.profileSnapshot }}",
+            "Notes": "={{ $json.notes }}"
+          },
+          "matchingColumns": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "typecast": true
+        }
+      },
+      "id": "a1e00001-0021-4000-8000-000000000021",
+      "name": "Record Baseline Metric",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1968,
+        -400
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ngaw78ZStScPicDq",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Capture baseline metrics when no net-new Pipeline records were found\n// All counts come from upstream nodes via $items() — this branch is taken\n// when the If node (jobId exists check) returns false (_empty sentinel from Dedup)\nconst feedList = $items(\"Build Feed List\");\nconst feedsGenerated = feedList ? feedList.length : 0;\n\nlet rssItems = [];\ntry { rssItems = $items(\"RSS Feed Read\") || []; } catch(e) { rssItems = []; }\nlet parsedItems = [];\ntry { parsedItems = $items(\"Parse & Filter Jobs\") || []; } catch(e) { parsedItems = []; }\nlet aggItems = [];\ntry { aggItems = $items(\"Aggregate All Jobs\") || []; } catch(e) { aggItems = []; }\n\nconst totalRssItems = rssItems.length;\nconst afterGeoFilter = parsedItems.filter(i => i.json && !i.json._empty).length;\nconst afterDedup = aggItems.filter(i => i.json && !i.json._empty && i.json.jobId).length;\n\nconst perFeedItems = {};\nconst perFeedAfterGeo = {};\nfor (const item of rssItems) {\n  if (!item.json || item.json._empty) continue;\n  const idx = item.json.feedIndex !== undefined ? item.json.feedIndex : 0;\n  if (!perFeedItems[idx]) perFeedItems[idx] = { total: 0, real: 0 };\n  perFeedItems[idx].total++;\n  if (!item.json._empty) perFeedItems[idx].real++;\n}\nfor (const item of parsedItems) {\n  if (!item.json || item.json._empty) continue;\n  const idx = item.json.feedIndex !== undefined ? item.json.feedIndex : 0;\n  if (!perFeedAfterGeo[idx]) perFeedAfterGeo[idx] = { items: 0, feedTotalRss: item.json.feedTotalRss || 0 };\n  perFeedAfterGeo[idx].items++;\n}\n\nlet profileRow = {};\ntry { profileRow = $(\"Get Profile\").first().json || {}; } catch(e) { profileRow = {}; }\n\nreturn [{\n  json: {\n    executionId: \"inline-\" + (typeof $execution !== \"undefined\" && $execution ? $execution.id || \"01e\" : \"01e\"),\n    executionStatus: \"success\",\n    valid: feedsGenerated > 0,\n    error: null,\n    errorDetails: null,\n    startedAt: new Date().toISOString(),\n    stoppedAt: new Date().toISOString(),\n    runDurationSeconds: 0,\n    feedsGenerated,\n    totalRssItems,\n    afterGeoFilter,\n    afterDedup,\n    netNewPipelineRecords: 0,\n    pipelineRecordsCreated: 0,\n    perFeedItems: JSON.stringify(Object.entries(perFeedItems).map(([k,v]) => ({ feedIndex: parseInt(k), items: v.real, total: v.total }))),\n    perFeedAfterGeo: JSON.stringify(Object.entries(perFeedAfterGeo).map(([k,v]) => ({ feedIndex: parseInt(k), items: v.items }))),\n    profileSnapshot: JSON.stringify(profileRow),\n    notes: \"No net-new Pipeline records\"\n  }\n}];\n"
+      },
+      "id": "a1e00001-0022-4000-8000-000000000022",
+      "name": "Capture Baseline Metrics (No Jobs)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1328,
+        -176
+      ]
     }
   ],
   "pinData": {},
@@ -1001,6 +1086,46 @@
         [
           {
             "node": "Create Pipeline Records",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Capture Baseline Metrics (No Jobs)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Pipeline Records": {
+      "main": [
+        [
+          {
+            "node": "Capture Baseline Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Capture Baseline Metrics": {
+      "main": [
+        [
+          {
+            "node": "Record Baseline Metric",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Capture Baseline Metrics (No Jobs)": {
+      "main": [
+        [
+          {
+            "node": "Record Baseline Metric",
             "type": "main",
             "index": 0
           }

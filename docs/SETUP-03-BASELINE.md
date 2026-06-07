@@ -2,7 +2,7 @@
 
 Setup walkthrough for the Phase 3 baseline measurement workflow. This workflow captures per-run metrics from the existing 01e hh.ru RSS scanner **without modifying it** — zero code changes to existing workflows.
 
-**What this workflow does:** After 01e completes (or errors), the measurement workflow queries the n8n API for 01e's execution data, extracts per-node item counts (feeds generated, RSS items, geo-filtered items, dedup results, Pipeline records created), reads a Profile snapshot, and writes everything to the new "Baseline Metrics" Airtable table. Phase 5 (Verification) will query this table for comparison.
+**How it works (success path):** The 01e scanner workflow itself captures metrics inline — a Code node at the end of 01e calculates per-node item counts and writes them directly to the "Baseline Metrics" Airtable table. This means zero external API calls (no n8n API key needed). **Error path:** A separate lightweight workflow (the original 03-baseline-diagnosis.json) handles the Error Trigger — when 01e errors, it captures the failure data and writes error metrics to the same table. Phase 5 (Verification) will query this table for comparison.
 
 **Reference decisions (CONTEXT.md):**
 - **D-01:** Metrics extracted via n8n REST API, not manual UI inspection
@@ -19,24 +19,25 @@ Setup walkthrough for the Phase 3 baseline measurement workflow. This workflow c
 
 ## 1. Overview
 
-The baseline measurement workflow (`workflows/03-baseline-diagnosis.json`) is a data-capture pipeline:
+Baseline metrics are captured through two independent paths:
+
+**Success path (inline within 01e):**
+During normal 01e execution, a Code node at the end of the workflow calculates per-node item counts using the workflow's own live data. An Airtable node writes these metrics directly to the "Baseline Metrics" table. No external API calls needed.
 
 ```
-01e runs (8:20 AM daily) → Schedule Trigger (8:25 AM) fetches execution data
-                      ↓ Error → Error Trigger captures execution ID
-                      ↓
-          n8n node: Get execution with full runData
-                      ↓
-          Code node: Parse runData for per-node item counts
-                      ↓
-          Airtable node: Get Profile for snapshot
-                      ↓
-          Airtable node: Create Baseline Metrics record
+01e runs (8:20 AM) → [normal execution] → Code: capture metrics → Airtable: record baseline
 ```
 
-The workflow handles both success and error outcomes from 01e. It runs fully automatically after initial setup — no manual intervention required once configured.
+**Error path (measurement workflow):**
+When 01e errors, the Error Trigger fires the measurement workflow (`workflows/03-baseline-diagnosis.json`). It parses the error execution data and writes error metrics to the same table.
 
-**Important:** This workflow is purely observational. It reads 01e's execution data and writes to Airtable. It cannot interfere with or modify 01e's behavior.
+```
+01e errors → Error Trigger → Parse error data → Airtable: record error baseline
+```
+
+Both paths record to the same "Baseline Metrics" Airtable table, differentiated by their `Execution Status` field.
+
+**Important:** This setup is purely observational. It reads 01e's execution data and writes to Airtable. It cannot interfere with or modify 01e's behavior.
 
 ---
 
@@ -48,13 +49,12 @@ The workflow handles both success and error outcomes from 01e. It runs fully aut
 4. The workflow will appear as **"JobSignal - Workflow 03 - Baseline Diagnosis"** in your workflows list
 
 After import, the workflow will have:
-- A **Schedule Trigger** (runs at 8:25 AM daily — 5 min after 01e's 8:20)
-- An **Error Trigger** (catches 01e failures)
-- An **n8n node** (queries 01e execution data)
-- A **Code node** (parses runData for metrics)
+- A **Manual Trigger** (for testing)
+- An **Error Trigger** (catches 01e failures — this is the main trigger)
+- A **Code node** (parses error runData for metrics)
 - An **Airtable Search node** (gets Profile for snapshot)
-- An **Airtable Create node** (writes to Baseline Metrics table)
-- An **IF node** (routes between schedule path and error path)
+- A **Code node** (combines metrics with Profile snapshot)
+- An **Airtable Create node** (writes error metrics to Baseline Metrics table)
 
 **Do not activate the workflow yet** — complete the remaining setup steps first.
 
@@ -93,52 +93,38 @@ CSV import creates all fields as plain text. Update these field types to match t
 
 See [`airtable/AIRTABLE-SCHEMA.md`](../airtable/AIRTABLE-SCHEMA.md) for the full field reference.
 
-### 3.3 Verify Airtable credential access
+### 3.3 Update Baseline Metrics table ID in 01e
 
-The measurement workflow uses the same `airtableTokenApi` credential as all other workflows. Verify it has write access to the new table:
+After creating the table, update the Airtable Create node in the 01e scanner workflow:
+
+1. Open the **01e scanner workflow** in n8n
+2. Find the **"Record Baseline Metric"** Airtable node
+3. In the **Table** field, select the new **"Baseline Metrics"** table
+4. Also update the **"Create Error Baseline Metric"** node in the **"JobSignal - Workflow 03 - Baseline Diagnosis"** workflow
+5. Click **Execute Node** on each to verify the table is reachable
+
+---
+
+## 4. Credential Setup
+
+The measurement workflow uses only Airtable nodes — no n8n API key is required. Metrics are captured inline by 01e itself (success path) or via the Error Trigger (error path), which receives execution data directly without API calls.
+
+### 4.1 Verify Airtable credential access
+
+The measurement workflow uses the same `airtableTokenApi` credential as all other workflows:
 
 1. In n8n, go to **Credentials** → **airtableTokenApi**
 2. Click **Check Credential** to verify it still works
 3. The credential must have scopes: `data.records:read`, `data.records:write` for the JobSignal Engine base
 4. If expired, regenerate at [airtable.com/create/tokens](https://airtable.com/create/tokens) and update the credential
 
----
-
-## 4. n8n Credential Setup
-
-The measurement workflow uses an n8n node to query execution data. This requires an **n8n API key** stored as an n8n Header Auth credential.
-
-### 4.1 Generate an n8n API key
-
-1. In n8n, go to **Settings** (gear icon) → **API Keys**
-2. Click **Add API Key**
-3. Enter a label like `Baseline Measurement`
-4. Copy the generated key — it starts with `n8n_api_...`
-
-> **Security note:** The API key provides access to execution data (read-only). Store it as an n8n credential — never embed it as plain text in the workflow JSON. See threat mitigation T-03-02.
-
-### 4.2 Create the Header Auth credential
-
-1. In n8n, go to **Credentials** → **Add Credential**
-2. Search for **Header Auth**
-3. Configure:
-   - **Credential Name:** `n8n API Key`
-   - **Header Name:** `X-N8N-API-KEY`
-   - **Header Value:** (paste the key from step 4.1)
-4. Click **Save**
-
-### 4.3 Assign the credential
-
-1. Open the **"JobSignal - Workflow 03 - Baseline Diagnosis"** workflow
-2. Find the **n8n** node (it queries 01e executions)
-3. In the node settings, under **Credential**, select **n8n API Key**
-4. The node will now authenticate to the n8n REST API on execution
+> **No n8n API key needed:** Because metrics are captured inline during 01e execution, the measurement workflow does not need to query the n8n REST API. This avoids the API key requirement (which is gated behind n8n paid plans) and simplifies setup.
 
 ---
 
 ## 5. Configure Error Trigger
 
-> **Why this is needed (RESEARCH Pitfall 4):** The Error Trigger node won't receive 01e's errors unless 01e is explicitly configured to use this workflow as its error handler. This is a manual n8n UI setting — it cannot be configured in workflow JSON.
+> **Why this is needed (RESEARCH Pitfall 4):** The Error Trigger node won't receive 01e's errors unless 01e is explicitly configured to use this workflow as its error handler. This is a manual n8n UI setting — it cannot be configured in workflow JSON. Since the measurement workflow no longer has a Schedule Trigger (success metrics are captured inline by 01e), the Error Trigger is its only automatic trigger.
 
 1. Open the **01e scanner workflow** (named `JobSignal - 01e - hh.ru RSS Scanner` or similar)
 2. Click the **Workflow Settings** icon (gear icon in the workflow editor toolbar)
@@ -146,25 +132,17 @@ The measurement workflow uses an n8n node to query execution data. This requires
 4. Select **"JobSignal - Workflow 03 - Baseline Diagnosis"**
 5. Click **Save** (important — this setting persists only after saving)
 6. **Verify:** Reopen settings and confirm the selection is still there
+7. **Activate** the measurement workflow (toggle to Active) so the Error Trigger works
 
-> **Troubleshooting:** If the measurement workflow doesn't appear in the dropdown, ensure it has been imported (Step 2) and that you have workflow editor permissions. If it still doesn't appear, save and reload the n8n page.
+> **Troubleshooting:** If the measurement workflow doesn't appear in the dropdown, ensure it has been imported (Step 2) and activated (Step 7). If it still doesn't appear, save and reload the n8n page.
 
 ---
 
 ## 6. Verify 01e Workflow ID
 
-> **Why this is needed (RESEARCH A7):** n8n assigns a numeric workflow ID on import. The workflow JSON may have a static ID that doesn't match your instance. The measurement workflow must query the correct 01e workflow.
+> **Why this is no longer needed:** The measurement workflow no longer has an n8n API node. Error data is received directly via the Error Trigger — no workflow ID lookup needed. Success metrics are captured inline by 01e itself.
 
-1. Open the **01e scanner workflow** in n8n
-2. Look at the browser URL — the path contains `/workflow/<numeric_id>`
-3. Note this numeric ID (e.g., `42`)
-4. Open the **"JobSignal - Workflow 03 - Baseline Diagnosis"** workflow
-5. Find the **"Get 01e Execution"** n8n node
-6. In the **Workflow** filter field, enter the numeric ID from step 2
-7. Also update the **Error Trigger** node if it has a Workflow ID field
-8. **Verify:** Click **Execute Node** on the n8n node — it should return the latest 01e execution without errors
-
-> **Tip:** If the n8n node returns no results, check that 01e has run at least once (even an error run counts). The filter looks for completed executions.
+**No action required for this section.** The architecture was changed from "query via API" to "capture inline" to avoid requiring an n8n API key (which is a paid n8n feature).
 
 ---
 
@@ -174,24 +152,24 @@ The measurement workflow uses an n8n node to query execution data. This requires
 
 ### Day 1 — First Run
 
-1. Ensure all previous setup steps are complete (credentials assigned, Error Trigger configured, workflow ID verified)
-2. **Activate** the **"JobSignal - Workflow 03 - Baseline Diagnosis"** workflow (toggle to Active)
+1. Ensure all previous setup steps are complete (Airtable credentials assigned, Error Trigger configured, 01e active)
+2. Ensure the **01e scanner workflow** is **Active** (toggle on)
 3. Execute **01e manually** (or wait for the 8:20 AM schedule)
 4. Wait for 01e to complete (usually 2–5 minutes)
-5. Wait for the measurement workflow to trigger at 8:25 AM (or trigger it manually after 01e completes)
-6. Check the **Baseline Metrics** table in Airtable — a new record should appear with:
+5. Check the **Baseline Metrics** table in Airtable — a new record should appear with:
    - A valid `Execution ID` matching the n8n execution log
-   - `Execution Status` = Success or Error
+   - `Execution Status` = Success
    - Numeric metrics filled in (Feeds Generated, Total RSS Items, etc.)
    - A `Profile Snapshot` containing your Profile fields as JSON
+   - Notes: "Inline capture from 01e"
+6. Metrics are captured automatically during 01e execution — no separate measurement workflow run needed for the success path
 
 ### Day 1 — Second Run (immediately after)
 
 1. Execute **01e manually** again (immediately after confirming the first run succeeded)
 2. Wait for 01e to complete
-3. Wait for the measurement workflow to trigger
-4. Check the **Baseline Metrics** table again — a second record should appear
-5. **Compare** the two records:
+3. Check the **Baseline Metrics** table again — a second record should appear
+4. **Compare** the two records:
    - Are Feeds Generated the same? (Expect yes — same Profile configuration)
    - Are Total RSS Items similar? (Small variance is normal for RSS)
    - Is Net New Pipeline Records similar? (Should be similar if no new jobs appeared between runs)
@@ -217,10 +195,11 @@ The measurement workflow uses an n8n node to query execution data. This requires
 **Check:** Did 01e execute successfully first?
 - Open 01e's execution history in n8n (clock icon on the workflow)
 - Look at the latest execution — did it complete with items?
-- If 01e had zero items, the measurement workflow correctly records zero — no bug
-- If 01e had items but measurement shows zero, the n8n node may have the wrong workflow ID or filter
+- If 01e had zero items, the measurement correctly records zero — no bug
+- If 01e had items but measurement shows zero, the inline capture Code node may have issues accessing `$items()` from nodes inside loops
+- Open the 01e execution details and check the "Capture Baseline Metrics" node output
 
-**Fix:** Verify the Workflow ID filter in the n8n node (Step 6) and re-execute.
+**Fix:** Check 01e execution logs for the "Capture Baseline Metrics" node output. If it shows `feedsGenerated: 0`, inspect the `$items("Build Feed List")` call — the node reference name must match exactly.
 
 ### 8.2 No Airtable record appears
 
@@ -274,13 +253,13 @@ The measurement workflow uses an n8n node to query execution data. This requires
 
 ## 9. Scraping After Baseline
 
-After the two-run protocol is complete and the baseline is recorded, the measurement workflow continues running daily:
+After the two-run protocol is complete and the baseline is recorded, metrics continue being captured automatically:
 
 - **8:20 AM:** 01e scanner runs (existing schedule, unchanged)
-- **8:25 AM:** Baseline measurement workflow runs, records metrics for the latest 01e execution
+- **During 01e execution:** Inline capture nodes record success metrics to Baseline Metrics table
 - **On 01e error:** Error Trigger fires, measurement workflow captures error details
 
-Each day adds a new row to the Baseline Metrics table with that day's measurements.
+Each successful 01e run adds a new row to the Baseline Metrics table.
 
 ### Phase 5 Handoff
 

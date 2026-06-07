@@ -3,111 +3,29 @@
   "nodes": [
     {
       "parameters": {},
-      "id": "bd030000-0001-4000-8000-000000000001",
+      "id": "03-manual-0001",
       "name": "Manual Trigger",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
-      "position": [
-        -1120,
-        -240
-      ]
-    },
-    {
-      "parameters": {
-        "rule": {
-          "interval": [
-            {
-              "triggerAtHour": 8,
-              "triggerAtMinute": 25
-            }
-          ]
-        }
-      },
-      "id": "bd030000-0002-4000-8000-000000000002",
-      "name": "Schedule Trigger",
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.2,
-      "position": [
-        -1120,
-        -16
-      ]
+      "position": [-1120, -240]
     },
     {
       "parameters": {},
-      "id": "bd030000-0003-4000-8000-000000000003",
+      "id": "03-error-0002",
       "name": "Error Trigger",
       "type": "n8n-nodes-base.errorTrigger",
       "typeVersion": 1,
-      "position": [
-        -1120,
-        208
-      ]
+      "position": [-1120, 16]
     },
     {
       "parameters": {
-        "operation": "getMany",
-        "returnAll": false,
-        "limit": 1,
-        "filters": {
-          "workflow": [
-            "REPLACE_ME_WITH_01E_ID"
-          ],
-          "status": "success"
-        },
-        "options": {
-          "includeExecutionDetails": true
-        }
+        "jsCode": "// Parse error execution data from Error Trigger\n// Error Trigger provides the failing execution data directly as input\nconst input = $input.first().json;\n\nconst executionData = input;\nconst runData = executionData.data?.runData || {};\nconst errorInfo = executionData.data?.resultData?.error || executionData.error || null;\nconst executionId = executionData.id || executionData.executionId || 'unknown';\n\nfunction sumRealEntries(nodeName) {\n  const entries = runData[nodeName] || [];\n  return entries.reduce((total, iter) => {\n    const items = iter.output?.[0] || [];\n    const realItems = items.filter(i => !i.json?._empty);\n    return total + realItems.length;\n  }, 0);\n}\n\nfunction sumAllEntries(nodeName) {\n  const entries = runData[nodeName] || [];\n  return entries.reduce((total, iter) => {\n    return total + (iter.output?.[0]?.length || 0);\n  }, 0);\n}\n\nconst feedsGenerated = runData['Build Feed List']?.[0]?.output?.[0]?.length || 0;\nconst totalRssItems = sumRealEntries('RSS Feed Read');\nconst afterGeoFilter = sumRealEntries('Parse & Filter Jobs');\nconst afterDedupOutput = runData['Aggregate All Jobs']?.[0]?.output?.[0] || [];\nconst afterDedup = afterDedupOutput.filter(i => !i.json?._empty).length;\nconst dedupOutput = runData['Deduplicate vs Pipeline']?.[0]?.output?.[0] || [];\nconst netNewPipelineRecords = dedupOutput.filter(i => !i.json?._empty).length;\nconst pipelineRecordsCreated = runData['Create Pipeline Records']?.[0]?.output?.[0]?.length || 0;\n\nconst executionStatus = executionData.status || 'error';\nconst valid = feedsGenerated > 0 && executionStatus !== 'error';\n\nconst perFeedItems = (runData['RSS Feed Read'] || []).map((iter, idx) => ({\n  feedIndex: idx,\n  items: (iter.output?.[0] || []).filter(i => !i.json?._empty).length,\n  total: (iter.output?.[0] || []).length\n}));\n\nconst perFeedAfterGeo = (runData['Parse & Filter Jobs'] || []).map((iter, idx) => ({\n  feedIndex: idx,\n  items: (iter.output?.[0] || []).filter(i => !i.json?._empty).length\n}));\n\nreturn [{\n  json: {\n    executionId,\n    executionStatus,\n    valid,\n    error: errorInfo ? (errorInfo.message || JSON.stringify(errorInfo)) : null,\n    errorDetails: errorInfo ? JSON.stringify({ message: errorInfo.message, lastNodeExecuted: executionData.lastNodeExecuted }) : null,\n    startedAt: executionData.startedAt,\n    stoppedAt: executionData.stoppedAt,\n    runDurationSeconds: executionData.startedAt && executionData.stoppedAt\n      ? (new Date(executionData.stoppedAt) - new Date(executionData.startedAt)) / 1000 : 0,\n    feedsGenerated,\n    totalRssItems,\n    perFeedItems: JSON.stringify(perFeedItems),\n    afterGeoFilter,\n    perFeedAfterGeo: JSON.stringify(perFeedAfterGeo),\n    afterDedup,\n    netNewPipelineRecords,\n    pipelineRecordsCreated\n  }\n}];"
       },
-      "id": "bd030000-0004-4000-8000-000000000004",
-      "name": "Get Latest Execution",
-      "type": "n8n-nodes-base.n8n",
-      "typeVersion": 1,
-      "position": [
-        -848,
-        -128
-      ],
-      "credentials": {
-        "n8nApi": {
-          "id": "__REPLACE_ME_WITH_N8N_CREDENTIAL_ID__",
-          "name": "n8n API Key"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "operation": "getOne",
-        "executionId": "={{ $json.execution?.id || $json.params?.executionId }}",
-        "options": {
-          "includeExecutionDetails": true
-        }
-      },
-      "id": "bd030000-0005-4000-8000-000000000005",
-      "name": "Get Error Execution",
-      "type": "n8n-nodes-base.n8n",
-      "typeVersion": 1,
-      "position": [
-        -848,
-        208
-      ],
-      "credentials": {
-        "n8nApi": {
-          "id": "__REPLACE_ME_WITH_N8N_CREDENTIAL_ID__",
-          "name": "n8n API Key"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "// Parse n8n execution runData for baseline metrics\n// Logic matches verified parse-runData.mjs from Plan 02\nconst input = $input.first().json;\nconst executionData = input.results?.[0] || input.data?.[0] || input;\nconst runData = executionData.data?.runData || {};\n\nfunction sumRealEntries(nodeName) {\n  const entries = runData[nodeName] || [];\n  return entries.reduce((total, iter) => {\n    const items = iter.output?.[0] || [];\n    const realItems = items.filter(i => !i.json?._empty);\n    return total + realItems.length;\n  }, 0);\n}\n\nfunction sumAllEntries(nodeName) {\n  const entries = runData[nodeName] || [];\n  return entries.reduce((total, iter) => {\n    return total + (iter.output?.[0]?.length || 0);\n  }, 0);\n}\n\nconst feedsGenerated = runData['Build Feed List']?.[0]?.output?.[0]?.length || 0;\nconst totalRssItems = sumRealEntries('RSS Feed Read');\nconst afterGeoFilter = sumRealEntries('Parse & Filter Jobs');\nconst afterDedupOutput = runData['Aggregate All Jobs']?.[0]?.output?.[0] || [];\nconst afterDedup = afterDedupOutput.filter(i => !i.json?._empty).length;\nconst dedupOutput = runData['Deduplicate vs Pipeline']?.[0]?.output?.[0] || [];\nconst netNewPipelineRecords = dedupOutput.filter(i => !i.json?._empty).length;\nconst pipelineRecordsCreated = runData['Create Pipeline Records']?.[0]?.output?.[0]?.length || 0;\nconst errorInfo = executionData.data?.resultData?.error || executionData.error || null;\nconst executionStatus = executionData.status || 'unknown';\nconst feedsGeneratedCount = feedsGenerated;\n\nconst valid = feedsGeneratedCount > 0 && executionStatus !== 'error';\n\nconst perFeedItems = (runData['RSS Feed Read'] || []).map((iter, idx) => ({\n  feedIndex: idx,\n  items: (iter.output?.[0] || []).filter(i => !i.json?._empty).length,\n  total: (iter.output?.[0] || []).length\n}));\n\nconst perFeedAfterGeo = (runData['Parse & Filter Jobs'] || []).map((iter, idx) => ({\n  feedIndex: idx,\n  items: (iter.output?.[0] || []).filter(i => !i.json?._empty).length\n}));\n\nreturn [{\n  json: {\n    executionId: executionData.id,\n    executionStatus,\n    valid,\n    error: errorInfo ? errorInfo.message || JSON.stringify(errorInfo) : null,\n    errorDetails: errorInfo ? JSON.stringify({ message: errorInfo.message, lastNodeExecuted: executionData.lastNodeExecuted }) : null,\n    startedAt: executionData.startedAt,\n    stoppedAt: executionData.stoppedAt,\n    runDurationSeconds: executionData.startedAt && executionData.stoppedAt\n      ? (new Date(executionData.stoppedAt) - new Date(executionData.startedAt)) / 1000 : 0,\n    feedsGenerated: feedsGeneratedCount,\n    totalRssItems,\n    perFeedItems: JSON.stringify(perFeedItems),\n    afterGeoFilter,\n    perFeedAfterGeo: JSON.stringify(perFeedAfterGeo),\n    afterDedup,\n    netNewPipelineRecords,\n    pipelineRecordsCreated\n  }\n}];"
-      },
-      "id": "bd030000-0006-4000-8000-000000000006",
-      "name": "Parse Execution Data",
+      "id": "03-code-0003",
+      "name": "Parse Error Data",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [
-        -576,
-        -128
-      ]
+      "position": [-848, 16]
     },
     {
       "parameters": {
@@ -128,15 +46,11 @@
         },
         "options": {}
       },
-      "id": "bd030000-0007-4000-8000-000000000007",
+      "id": "03-profile-0004",
       "name": "Get Profile",
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.1,
-      "position": [
-        -304,
-        -128
-      ],
-      "alwaysOutputData": true,
+      "position": [-576, 16],
       "credentials": {
         "airtableTokenApi": {
           "id": "Ngaw78ZStScPicDq",
@@ -146,37 +60,13 @@
     },
     {
       "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
-              "id": "bd03-if-valid",
-              "leftValue": "={{ $json.valid }}",
-              "rightValue": true,
-              "operator": {
-                "type": "boolean",
-                "operation": "equal"
-              },
-              "singleValue": true
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
+        "jsCode": "// Combine parsed error data with Profile snapshot\nconst errorData = $('Parse Error Data').first().json;\nconst profileRow = $('Get Profile').first().json;\n\nreturn [{\n  json: {\n    executionId: errorData.executionId,\n    executionStatus: errorData.executionStatus,\n    valid: errorData.valid,\n    error: errorData.error,\n    errorDetails: errorData.errorDetails,\n    startedAt: errorData.startedAt,\n    stoppedAt: errorData.stoppedAt,\n    runDurationSeconds: errorData.runDurationSeconds,\n    feedsGenerated: errorData.feedsGenerated,\n    totalRssItems: errorData.totalRssItems,\n    afterGeoFilter: errorData.afterGeoFilter,\n    afterDedup: errorData.afterDedup,\n    netNewPipelineRecords: errorData.netNewPipelineRecords,\n    pipelineRecordsCreated: errorData.pipelineRecordsCreated,\n    perFeedItems: errorData.perFeedItems,\n    perFeedAfterGeo: errorData.perFeedAfterGeo,\n    profileSnapshot: JSON.stringify(profileRow),\n    notes: 'Error capture from Error Trigger'\n  }\n}];"
       },
-      "id": "bd030000-0008-4000-8000-000000000008",
-      "name": "Is Valid Data?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        -32,
-        -128
-      ]
+      "id": "03-merge-0005",
+      "name": "Prepare Metric for Airtable",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-304, 16]
     },
     {
       "parameters": {
@@ -211,192 +101,22 @@
             "Error Details": "={{ $json.errorDetails }}",
             "Per Feed Items": "={{ $json.perFeedItems }}",
             "Per Feed After Geo": "={{ $json.perFeedAfterGeo }}",
-            "Profile Snapshot": "={{ JSON.stringify($('Get Profile').first().json) }}",
-            "Notes": ""
+            "Profile Snapshot": "={{ $json.profileSnapshot }}",
+            "Notes": "={{ $json.notes }}"
           },
           "matchingColumns": [],
-          "schema": [
-            {
-              "id": "Execution ID",
-              "displayName": "Execution ID",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Run Timestamp",
-              "displayName": "Run Timestamp",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "dateTime",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Execution Status",
-              "displayName": "Execution Status",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Feeds Generated",
-              "displayName": "Feeds Generated",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Total RSS Items",
-              "displayName": "Total RSS Items",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "After Geography Filter",
-              "displayName": "After Geography Filter",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "After Dedup",
-              "displayName": "After Dedup",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Net New Pipeline Records",
-              "displayName": "Net New Pipeline Records",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Pipeline Records Created",
-              "displayName": "Pipeline Records Created",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Run Duration Seconds",
-              "displayName": "Run Duration Seconds",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Error Details",
-              "displayName": "Error Details",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Per Feed Items",
-              "displayName": "Per Feed Items",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Per Feed After Geo",
-              "displayName": "Per Feed After Geo",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Profile Snapshot",
-              "displayName": "Profile Snapshot",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Notes",
-              "displayName": "Notes",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            }
-          ],
           "attemptToConvertTypes": false,
-          "convertFieldsToString": false
+          "convertFieldsToString": true
         },
         "options": {
           "typecast": true
         }
       },
-      "id": "bd030000-0009-4000-8000-000000000009",
-      "name": "Create Baseline Metric",
+      "id": "03-airtable-0006",
+      "name": "Create Error Baseline Metric",
       "type": "n8n-nodes-base.airtable",
       "typeVersion": 2.1,
-      "position": [
-        240,
-        -128
-      ],
+      "position": [-32, 16],
       "credentials": {
         "airtableTokenApi": {
           "id": "Ngaw78ZStScPicDq",
@@ -406,109 +126,33 @@
     },
     {
       "parameters": {
-        "content": "## Workflow 03 — Baseline Diagnosis (measurement)\n\n**Automatic measurement of 01e hh.ru scanner metrics.**\n\n**Flow:**\n1. Schedule Trigger (8:25 AM) or Error Trigger catches 01e completion\n2. Fetch 01e execution data via n8n API (Get Many/Get One)\n3. Parse runData for per-node item counts\n4. Read Profile for snapshot\n5. Record baseline metrics to Airtable (if data valid)\n\n**Per D-09:** Does NOT record if zero results or errors occurred.\n**Modifies no workflow files.**",
+        "content": "## Workflow 03 — Baseline Diagnosis (error capture)\n\n**Captures baseline metrics from 01e error executions.**\n\nThis workflow handles only the Error Trigger path. Success metrics are captured inline within the 01e scanner workflow itself (added Code + Airtable nodes at the end of 01e).\n\n**Flow:**\n1. Error Trigger catches 01e failures\n2. Parse error execution data for per-node item counts\n3. Read Profile for snapshot\n4. Record error baseline metrics to Airtable\n\n**Per D-09:** Does NOT record if zero results or errors occurred.\n**Modifies no workflow files.**",
         "height": 440,
         "width": 400
       },
-      "id": "bd030000-0010-4000-8000-000000000010",
+      "id": "03-sticky-0007",
       "name": "Sticky Note",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [
-        -1120,
-        -720
-      ]
+      "position": [-1120, -720]
     }
   ],
   "pinData": {},
   "connections": {
     "Manual Trigger": {
-      "main": [
-        [
-          {
-            "node": "Get Latest Execution",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Schedule Trigger": {
-      "main": [
-        [
-          {
-            "node": "Get Latest Execution",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Parse Error Data", "type": "main", "index": 0 }]]
     },
     "Error Trigger": {
-      "main": [
-        [
-          {
-            "node": "Get Error Execution",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Parse Error Data", "type": "main", "index": 0 }]]
     },
-    "Get Latest Execution": {
-      "main": [
-        [
-          {
-            "node": "Parse Execution Data",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get Error Execution": {
-      "main": [
-        [
-          {
-            "node": "Parse Execution Data",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Parse Execution Data": {
-      "main": [
-        [
-          {
-            "node": "Get Profile",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+    "Parse Error Data": {
+      "main": [[{ "node": "Get Profile", "type": "main", "index": 0 }]]
     },
     "Get Profile": {
-      "main": [
-        [
-          {
-            "node": "Is Valid Data?",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+      "main": [[{ "node": "Prepare Metric for Airtable", "type": "main", "index": 0 }]]
     },
-    "Is Valid Data?": {
-      "main": [
-        [
-          {
-            "node": "Create Baseline Metric",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
+    "Prepare Metric for Airtable": {
+      "main": [[{ "node": "Create Error Baseline Metric", "type": "main", "index": 0 }]]
     }
   },
   "active": false,
@@ -517,10 +161,10 @@
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "baseline03-v1",
+  "versionId": "baseline03-v2",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "baseline-diagnosis-03-instance"
+    "instanceId": "d7e19fca9705d4d0c36e6fe71822071e2ec1e1c76f266658ed6763dfc41db437"
   },
   "id": "BaselineDiagnosis03",
   "tags": []
