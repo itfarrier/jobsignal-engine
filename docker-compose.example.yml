@@ -22,6 +22,21 @@ services:
     volumes:
       - db_storage:/var/lib/postgresql/data
 
+  nocodb-postgres:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=nocodb_user
+      - POSTGRES_PASSWORD=REPLACE_WITH_YOUR_PASSWORD
+      - POSTGRES_DB=nocodb_db
+    volumes:
+      - nocodb_db_storage:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nocodb_user -d nocodb_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
   n8n:
     image: docker.n8n.io/n8nio/n8n
     restart: always
@@ -38,11 +53,30 @@ services:
       - N8N_SECURE_COOKIE=true
       # Replace with your domain, or remove if running locally
       - WEBHOOK_URL=https://your-domain.com/
+      - NOCDB_API_TOKEN=REPLACE_WITH_TOKEN
+      - NOCDB_HOST=http://nocodb:8080
     volumes:
       - n8n_storage:/home/node/.n8n
       - shared_tmp:/tmp/jobsignal
     depends_on:
       - db
+
+  nocodb:
+    image: nocodb/nocodb:latest
+    restart: always
+    depends_on:
+      nocodb-postgres:
+        condition: service_healthy
+    environment:
+      - NC_DB=pg://nocodb-postgres:5432?u=nocodb_user&p=REPLACE_WITH_YOUR_PASSWORD&d=nocodb_db
+      - NC_AUTH_JWT_SECRET=REPLACE_WITH_YOUR_JWT_SECRET
+      - NC_PUBLIC_URL=https://nocodb.yourdomain.com
+      - NC_ATTACHMENT_FIELD_SIZE=20971520
+      - NC_DISABLE_TELE=true
+    ports:
+      - "8080:8080"
+    volumes:
+      - nocodb_data:/usr/app/data
 
   cv-renderer:
     build:
@@ -70,3 +104,5 @@ volumes:
   caddy_data:
   caddy_config:
   shared_tmp:
+  nocodb_db_storage:
+  nocodb_data:
