@@ -33,7 +33,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. `python scripts/nocodb_bootstrap.py --table Pipeline` creates a single table without affecting others
   4. `python scripts/nocodb_bootstrap.py --import-data` seeds tables from CSV/export data
   5. docker-compose.example.yml includes NocoDB service with API token, JWT secret, and attachment size limit configuration
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 01-01-PLAN.md — NocoDB Docker infrastructure + Schema definition
+- [ ] 01-02-PLAN.md — Bootstrap script (nocodb_bootstrap.py)
+- [ ] 01-03-PLAN.md — End-to-end verification
 
 ### Phase 2: Data Migration
 **Goal**: All existing Airtable data is migrated to NocoDB with correct field types and linked record references
@@ -118,7 +122,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Infrastructure & Bootstrap | 0/0 | Not started | - |
+| 1. Infrastructure & Bootstrap | 0/3 | Not started | - |
 | 2. Data Migration | 0/0 | Not started | - |
 | 3. Scanner Workflows Migration | 0/0 | Not started | - |
 | 4. Evaluator Workflow Migration | 0/0 | Not started | - |
