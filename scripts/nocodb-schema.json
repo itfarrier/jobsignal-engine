@@ -1,0 +1,530 @@
+{
+  "version": "1.0",
+  "description": "JobSignal Engine NocoDB Schema — canonical schema definition for all 4 tables, translated from Airtable schema with correct NocoDB v3 field types",
+  "base_title": "JobSignal Engine",
+  "tables": [
+    {
+      "title": "Profile",
+      "description": "Your skills, target roles, geography, CV markdown. Drives all AI prompts.",
+      "fields": [
+        {
+          "title": "Full Name",
+          "type": "SingleLineText",
+          "required": true,
+          "description": "Used in CV generation"
+        },
+        {
+          "title": "Professional Summary",
+          "type": "LongText",
+          "required": true,
+          "description": "Injected into AI scoring prompts — 2-3 sentences positioning you"
+        },
+        {
+          "title": "Core Skills",
+          "type": "MultiSelect",
+          "required": true,
+          "description": "Primary technical skills",
+          "options": {
+            "choices": [
+              { "title": "Python", "color": "#36BFFF" },
+              { "title": "JavaScript", "color": "#36BFFF" }
+            ]
+          }
+        },
+        {
+          "title": "Secondary Skills",
+          "type": "MultiSelect",
+          "required": false,
+          "description": "Supporting skills",
+          "options": {
+            "choices": []
+          }
+        },
+        {
+          "title": "Target Roles",
+          "type": "MultiSelect",
+          "required": true,
+          "description": "Job titles you're pursuing",
+          "options": {
+            "choices": [
+              { "title": "Software Engineer", "color": "#36BFFF" }
+            ]
+          }
+        },
+        {
+          "title": "Target Industries",
+          "type": "MultiSelect",
+          "required": true,
+          "description": "Preferred industries",
+          "options": {
+            "choices": []
+          }
+        },
+        {
+          "title": "Negative Filters",
+          "type": "MultiSelect",
+          "required": true,
+          "description": "Hard exclusions (Junior, PHP, Blockchain, etc.)",
+          "options": {
+            "choices": []
+          }
+        },
+        {
+          "title": "Seniority Level",
+          "type": "SingleSelect",
+          "required": true,
+          "description": "Target seniority for role matching",
+          "options": {
+            "choices": [
+              { "title": "Mid", "color": "#36BFFF" },
+              { "title": "Senior", "color": "#36BFFF" },
+              { "title": "Staff", "color": "#36BFFF" },
+              { "title": "Lead", "color": "#36BFFF" },
+              { "title": "Head", "color": "#36BFFF" }
+            ]
+          }
+        },
+        {
+          "title": "Location Preference",
+          "type": "SingleSelect",
+          "required": false,
+          "description": "Work arrangement preference",
+          "options": {
+            "choices": [
+              { "title": "Remote Only", "color": "#36BFFF" },
+              { "title": "Hybrid", "color": "#36BFFF" },
+              { "title": "On-site", "color": "#36BFFF" },
+              { "title": "Any", "color": "#36BFFF" }
+            ]
+          }
+        },
+        {
+          "title": "Target Geography",
+          "type": "MultiSelect",
+          "required": true,
+          "description": "Geographic regions to target",
+          "options": {
+            "choices": [
+              { "title": "Canada", "color": "#36BFFF" },
+              { "title": "USA", "color": "#36BFFF" },
+              { "title": "Remote Global", "color": "#36BFFF" },
+              { "title": "Remote North America", "color": "#36BFFF" },
+              { "title": "EMEA", "color": "#36BFFF" },
+              { "title": "UK", "color": "#36BFFF" },
+              { "title": "APAC", "color": "#36BFFF" }
+            ]
+          }
+        },
+        {
+          "title": "AI Model",
+          "type": "SingleLineText",
+          "required": false,
+          "description": "Informational reference — the actual model is configured in each n8n OpenAI node"
+        },
+        {
+          "title": "Scoring Rubric Override",
+          "type": "LongText",
+          "required": false,
+          "description": "Custom instructions appended to the AI scoring prompt"
+        },
+        {
+          "title": "CV Markdown",
+          "type": "LongText",
+          "required": true,
+          "description": "Full CV in markdown — critical for STAR responses and CV tailoring"
+        },
+        {
+          "title": "Notification Email",
+          "type": "Email",
+          "required": true,
+          "description": "Where alerts and digests go"
+        }
+      ]
+    },
+    {
+      "title": "Tracked Companies",
+      "description": "Companies to scan daily. Pre-loaded with 139 verified companies across 30 categories.",
+      "fields": [
+        {
+          "title": "Company Name",
+          "type": "SingleLineText",
+          "required": false,
+          "description": "Display name"
+        },
+        {
+          "title": "Careers URL",
+          "type": "URL",
+          "required": false,
+          "description": "Link to company careers page"
+        },
+        {
+          "title": "API Endpoint",
+          "type": "URL",
+          "required": false,
+          "description": "Greenhouse/Ashby/Lever API URL"
+        },
+        {
+          "title": "Scan Method",
+          "type": "SingleSelect",
+          "required": false,
+          "description": "How jobs are discovered for this company",
+          "options": {
+            "choices": [
+              { "title": "Greenhouse API", "color": "#36BFFF" },
+              { "title": "Ashby", "color": "#36BFFF" },
+              { "title": "Lever", "color": "#36BFFF" }
+            ]
+          }
+        },
+        {
+          "title": "Title Keywords",
+          "type": "SingleLineText",
+          "required": false,
+          "description": "Comma-separated positive keywords (blank = all roles at that company)"
+        },
+        {
+          "title": "Enabled",
+          "type": "Checkbox",
+          "required": false,
+          "description": "Toggle scanning on/off"
+        },
+        {
+          "title": "Notes",
+          "type": "SingleLineText",
+          "required": false,
+          "description": "Why this company is tracked"
+        },
+        {
+          "title": "Last Scan",
+          "type": "Date",
+          "required": false,
+          "description": "Auto-updated by workflows",
+          "options": {
+            "date_format": "YYYY-MM-DD"
+          }
+        },
+        {
+          "title": "Jobs Found Last Scan",
+          "type": "Number",
+          "required": false,
+          "description": "Auto-updated by workflows"
+        }
+      ]
+    },
+    {
+      "title": "Pipeline",
+      "description": "Every discovered job with full lifecycle tracking. Auto-populated by scanner workflows.",
+      "fields": [
+        {
+          "title": "Job ID",
+          "type": "SingleLineText",
+          "required": false,
+          "description": "FNV-1a hash of title + company + apply link"
+        },
+        {
+          "title": "Job Title",
+          "type": "SingleLineText",
+          "required": false,
+          "description": "Position title from listing"
+        },
+        {
+          "title": "Company",
+          "type": "SingleLineText",
+          "required": false,
+          "description": "Employer name"
+        },
+        {
+          "title": "Location",
+          "type": "SingleLineText",
+          "required": false,
+          "description": "Job location from listing"
+        },
+        {
+          "title": "Apply Link",
+          "type": "URL",
+          "required": false,
+          "description": "Direct application URL"
+        },
+        {
+          "title": "Job Description",
+          "type": "LongText",
+          "required": false,
+          "description": "Full JD for AI scoring"
+        },
+        {
+          "title": "Source",
+          "type": "SingleSelect",
+          "required": false,
+          "description": "Where the job was discovered",
+          "options": {
+            "choices": [
+              { "title": "LinkedIn", "color": "#36BFFF" },
+              { "title": "Indeed", "color": "#36BFFF" },
+              { "title": "Greenhouse", "color": "#36BFFF" },
+              { "title": "Ashby", "color": "#36BFFF" },
+              { "title": "Lever", "color": "#36BFFF" },
+              { "title": "Glassdoor", "color": "#36BFFF" }
+            ]
+          }
+        },
+        {
+          "title": "Source Query",
+          "type": "SingleLineText",
+          "required": false,
+          "description": "Which query or company found this job"
+        },
+        {
+          "title": "Source Tag",
+          "type": "SingleLineText",
+          "required": false,
+          "description": "Label from the query that discovered it"
+        },
+        {
+          "title": "Discovery Date",
+          "type": "Date",
+          "required": false,
+          "description": "When first seen",
+          "options": {
+            "date_format": "YYYY-MM-DD"
+          }
+        },
+        {
+          "title": "Status",
+          "type": "SingleSelect",
+          "required": false,
+          "description": "Job lifecycle stage",
+          "options": {
+            "choices": [
+              { "title": "New", "color": "#36BFFF" },
+              { "title": "Evaluated", "color": "#36BFFF" },
+              { "title": "Applied", "color": "#36BFFF" },
+              { "title": "Interview", "color": "#36BFFF" },
+              { "title": "Offer", "color": "#36BFFF" },
+              { "title": "Rejected", "color": "#36BFFF" },
+              { "title": "Archived", "color": "#36BFFF" }
+            ]
+          }
+        },
+        {
+          "title": "Fit Score",
+          "type": "Decimal",
+          "required": false,
+          "description": "1-10 AI-generated fit score",
+          "options": {
+            "precision": 1
+          }
+        },
+        {
+          "title": "Fit Tier",
+          "type": "SingleSelect",
+          "required": false,
+          "description": "Score categorization",
+          "options": {
+            "choices": [
+              { "title": "High", "color": "#36BFFF" },
+              { "title": "Medium", "color": "#36BFFF" },
+              { "title": "Low", "color": "#36BFFF" }
+            ]
+          }
+        },
+        {
+          "title": "Match Reasoning",
+          "type": "LongText",
+          "required": false,
+          "description": "AI explanation of the score"
+        },
+        {
+          "title": "Matched Skills",
+          "type": "LongText",
+          "required": false,
+          "description": "Skills from your profile that matched the JD"
+        },
+        {
+          "title": "Missing Skills",
+          "type": "LongText",
+          "required": false,
+          "description": "Skills the JD wants that you lack"
+        },
+        {
+          "title": "CV Tailoring Notes",
+          "type": "LongText",
+          "required": false,
+          "description": "AI suggestions for CV customization"
+        },
+        {
+          "title": "Salary Info",
+          "type": "SingleLineText",
+          "required": false,
+          "description": "Extracted from JD if present"
+        },
+        {
+          "title": "AI Evaluation Cost",
+          "type": "Decimal",
+          "required": false,
+          "description": "Token cost for this evaluation",
+          "options": {
+            "precision": 6
+          }
+        },
+        {
+          "title": "Applied Date",
+          "type": "Date",
+          "required": false,
+          "description": "Set manually when you apply",
+          "options": {
+            "date_format": "YYYY-MM-DD"
+          }
+        },
+        {
+          "title": "Response Date",
+          "type": "Date",
+          "required": false,
+          "description": "Set manually when you hear back",
+          "options": {
+            "date_format": "YYYY-MM-DD"
+          }
+        },
+        {
+          "title": "Outcome Notes",
+          "type": "LongText",
+          "required": false,
+          "description": "Interview feedback, rejection reason, etc."
+        },
+        {
+          "title": "Tailored CV Text",
+          "type": "LongText",
+          "required": false,
+          "description": "Markdown version of tailored CV"
+        },
+        {
+          "title": "CV Tailoring Cost",
+          "type": "Decimal",
+          "required": false,
+          "description": "Token cost for CV tailoring",
+          "options": {
+            "precision": 6
+          }
+        },
+        {
+          "title": "Tailored CV",
+          "type": "Attachment",
+          "required": false,
+          "description": "DOCX file (self-hosted only)"
+        },
+        {
+          "title": "Interview Questions",
+          "type": "LongText",
+          "required": false,
+          "description": "15 tailored questions (High Fit only)"
+        },
+        {
+          "title": "STAR Responses",
+          "type": "LongText",
+          "required": false,
+          "description": "5 STAR stories (High Fit only)"
+        },
+        {
+          "title": "Interview Prep Cost",
+          "type": "Decimal",
+          "required": false,
+          "description": "Token cost for interview prep",
+          "options": {
+            "precision": 6
+          }
+        }
+      ]
+    },
+    {
+      "title": "Search Queries",
+      "description": "JobSpy search parameters for LinkedIn and Indeed scraping (self-hosted only).",
+      "fields": [
+        {
+          "title": "Query",
+          "type": "SingleLineText",
+          "required": false,
+          "description": "Human label (e.g., AI Automation — Canada)"
+        },
+        {
+          "title": "Source Type",
+          "type": "SingleSelect",
+          "required": false,
+          "description": "Scraper to use for this query",
+          "options": {
+            "choices": [
+              { "title": "JobSpy", "color": "#36BFFF" }
+            ]
+          }
+        },
+        {
+          "title": "Query String",
+          "type": "SingleLineText",
+          "required": false,
+          "description": "Search term (e.g., AI automation engineer)"
+        },
+        {
+          "title": "Title Keywords",
+          "type": "SingleLineText",
+          "required": false,
+          "description": "Comma-separated per-query title filters"
+        },
+        {
+          "title": "JobSpy Sites",
+          "type": "SingleLineText",
+          "required": false,
+          "description": "Comma-separated: indeed, linkedin"
+        },
+        {
+          "title": "Location",
+          "type": "SingleLineText",
+          "required": false,
+          "description": "e.g., Toronto, Canada"
+        },
+        {
+          "title": "Country Filter",
+          "type": "SingleLineText",
+          "required": false,
+          "description": "e.g., Canada (for Indeed filtering)"
+        },
+        {
+          "title": "Hours Old",
+          "type": "Number",
+          "required": false,
+          "description": "Recency filter (e.g., 72 for last 3 days)"
+        },
+        {
+          "title": "Results Wanted",
+          "type": "Number",
+          "required": false,
+          "description": "Max results per query (capped at 100 by safety brake)"
+        },
+        {
+          "title": "Source Tag",
+          "type": "SingleLineText",
+          "required": false,
+          "description": "Label applied to discovered jobs (e.g., AI Hunter)"
+        },
+        {
+          "title": "Enabled",
+          "type": "Checkbox",
+          "required": false,
+          "description": "Toggle on/off without deleting the query"
+        },
+        {
+          "title": "Last Run",
+          "type": "Date",
+          "required": false,
+          "description": "Auto-updated by workflows",
+          "options": {
+            "date_format": "YYYY-MM-DD"
+          }
+        },
+        {
+          "title": "Results Last Run",
+          "type": "Number",
+          "required": false,
+          "description": "Auto-updated by workflows"
+        }
+      ]
+    }
+  ]
+}
