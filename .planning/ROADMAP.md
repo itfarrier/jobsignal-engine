@@ -118,6 +118,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 1 plan
 
 **Plans:**
+
 - [ ] 04-01-PLAN.md — Replace Airtable nodes in Evaluator workflow with NocoDB HTTP Request + Unwrap nodes + update code references
 
 ### Phase 5: Tailor Workflow & Attachments Migration
@@ -133,8 +134,8 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. CV attachment is visible, previewable, and downloadable from the NocoDB Pipeline record UI
 
 **Plans**: 1 plan
-
 **Plans:**
+
 - [ ] 05-01-PLAN.md — Replace Airtable nodes in Tailor workflow with NocoDB HTTP GET/Unwrap/PATCH + Convert to File + Upload DOCX storage upload
 
 ### Phase 6: Housekeeper & Alerter Migration

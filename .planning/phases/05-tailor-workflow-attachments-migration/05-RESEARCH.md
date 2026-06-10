@@ -641,16 +641,17 @@ Source: n8n HTTP Request docs + NocoDB upload docs [CITED: docs.nocodb.com uploa
 | A5 | D-05 `Id` integer works for PATCH | PATCH Correction | **High risk** — Phase 4 proved API requires string `id`; planner must override D-05 |
 | A6 | `(is,blank)` filter works for LongText `Tailored CV Text` | Filter URL | If blank operator fails, fall back to compound `(eq,)~or(is,null)` testing |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Upload response wrapping in n8n HTTP Request node**
-   - What we know: NocoDB docs show `uploadResponse.data` as array in Node.js axios example
-   - What's unclear: Whether n8n places array at `$json` root or under a property
-   - Recommendation: Verify in first test execution; adjust PATCH expression to `$('Upload DOCX').item.json` vs `.item.json.data`
+1. **Upload response wrapping in n8n HTTP Request node** — RESOLVED
+   - **Decision:** PATCH IIFE uses defensive extraction: `const uploadJson = $('Upload DOCX').item.json; const attachmentArray = Array.isArray(uploadJson) ? uploadJson : (uploadJson.data || uploadJson.body || []);`
+   - **Rationale:** n8n HTTP Request typically places JSON array responses at `$json` root, but axios-style `.data` wrapping is possible depending on response options. The IIFE handles both shapes without a second test pass.
+   - **Verify at runtime:** Task 3 manual test inspects Upload DOCX output shape and documents which branch fired.
 
-2. **Quoted vs URL-encoded filter for Fit Tier**
-   - What we know: D-04 specifies URL-encoded spaces; Phase 3 recommends quoted `"Fit Tier"` for space-containing columns
-   - Recommendation: Use quoted syntax in plan; fall back to D-04 URL-encoded variant if query fails
+2. **Quoted vs URL-encoded filter for Fit Tier** — RESOLVED
+   - **Decision:** Use quoted column syntax in plan URL: `?where=(Status,eq,Evaluated)~and("Fit Tier",eq,High)~and("Tailored CV Text",is,blank)`
+   - **Rationale:** Phase 3 scanner research confirmed quoted syntax for space-containing column names; D-04 URL-encoded variant (`Fit%20Tier`) retained as documented fallback if query returns zero results unexpectedly.
+   - **Fallback:** If filter returns no jobs when jobs exist, switch to D-04 URL-encoded form: `(Fit%20Tier,eq,High)`
 
 ## Sources
 

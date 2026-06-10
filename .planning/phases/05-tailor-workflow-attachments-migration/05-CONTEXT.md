@@ -24,7 +24,7 @@ Requirements: TAIL-01, TAIL-02, TAIL-03
 - **D-04:** Filter for untailored jobs using NocoDB `(is,blank)` syntax: `?where=(Status,eq,Evaluated)~and(Fit%20Tier,eq,High)~and(Tailored%20CV%20Text,is,blank)`. The `blank` operator catches both empty string and NULL. The `(is,null)` operator does not work correctly in NocoDB v3 for text fields (treated as string literal).
 
 ### Record ID from NocoDB
-- **D-05:** The "Build Tailoring Prompt" Code node reads NocoDB's auto-generated `Id` field directly: `loopItem['Id']` from the Unwrap node response. Matches Phase 4 D-05 pattern exactly.
+- **D-05:** The Unwrap nodes expose NocoDB's string UUID `record.id` (not the auto-increment integer `Id`). "Build Tailoring Prompt" and "Parse Tailored CV" Code nodes thread `job.json.id` as `_recordId` for PATCH operations. Supersedes original D-05 wording — Phase 4 research proved v3 PATCH requires string `id`, not integer `Id`.
 
 ### Graceful Degradation
 - **D-06:** If the NocoDB storage upload fails, the PATCH node still updates `Tailored CV Text` and `CV Tailoring Cost` — the markdown text is the primary output, the DOCX is convenience. Follows the existing codebase graceful degradation pattern (interview prep failures store error instead of crashing).
