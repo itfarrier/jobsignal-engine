@@ -353,6 +353,42 @@ def create_base(base_url, token, workspace_id):
     return base_id
 
 
+def get_or_create_base(base_url, token, workspace_id):
+    """Find existing 'JobSignal Engine' base in workspace, or create one.
+
+    GET /api/v3/meta/workspaces/{workspace_id}/bases to list existing bases.
+    If a base titled 'JobSignal Engine' exists, return its id.
+    Otherwise, call create_base() to create a new one.
+
+    Args:
+        base_url: NocoDB base URL
+        token: JWT or API token for authentication
+        workspace_id: Target workspace ID
+
+    Returns:
+        base_id string
+    """
+    headers = {"xc-auth": token}
+    list_url = urljoin(
+        base_url.rstrip("/") + "/",
+        f"api/v3/meta/workspaces/{workspace_id}/bases",
+    )
+
+    try:
+        data = _api_request("GET", list_url, headers=headers)
+        bases_list = data.get("list", [])
+        for base in bases_list:
+            if base.get("title") == "JobSignal Engine":
+                base_id = base.get("id")
+                logger.info(f"Using existing base 'JobSignal Engine' (id: {base_id})")
+                return base_id
+    except Exception as e:
+        logger.warning(f"Could not list bases: {e} — will create new base")
+
+    logger.info("No existing base 'JobSignal Engine' found — creating new base")
+    return create_base(base_url, token, workspace_id)
+
+
 def create_api_token(base_url, token, base_id):
     """Create a persistent API token for the base.
 
@@ -784,7 +820,7 @@ def main():
         if not args.skip_setup:
             logger.info("Setting up workspace and base...")
             workspace_id = get_or_create_workspace(base_url, jwt_token)
-            base_id = create_base(base_url, jwt_token, workspace_id)
+            base_id = get_or_create_base(base_url, jwt_token, workspace_id)
             api_token = create_api_token(base_url, jwt_token, base_id)
         else:
             logger.info("Using existing setup (--skip-setup)...")
