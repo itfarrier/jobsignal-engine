@@ -18,6 +18,22 @@ This phase replaces all Airtable nodes in the 4 scanner workflows (01a Greenhous
 
 **Primary recommendation:** One plan per scanner workflow (4 plans), with a potential 5th plan for docker-compose env var updates and n8n credential setup. Execute in order: 1a (reference pattern) → 1b → 1c → 1d (most complex, adds Profile node).
 
+## Project Constraints (from AGENTS.md)
+
+The AGENTS.md file contains the following actionable directives that apply to this phase:
+
+| Directive | Source | How Phase 3 Complies |
+|-----------|--------|----------------------|
+| All 8 workflows must produce identical output after migration | AGENTS.md: Project Constraints | Airtable remains active (cutover at Phase 8); scanner workflows must produce same Pipeline records as before |
+| Replace Airtable nodes in-place without changing workflow structure | AGENTS.md: Architecture (replace Airtable nodes in-place) | Nodes are replaced with HTTP Request + unwrap transform; existing Code node logic and connection flow remain unchanged |
+| Backend uses NocoDB with its own PostgreSQL separate from n8n | AGENTS.md: Project Constraints | NocoDB is already deployed via Phase 1; this phase only changes how scanners talk to it |
+| GSD workflow enforcement — use GSD commands before editing | AGENTS.md: GSD Workflow Enforcement | Planner will create PLAN.md; phase follows `/gsd-execute-phase` |
+| Node naming convention: PascalCase, descriptive (e.g., "Get Profile") | AGENTS.md: Naming Patterns | New HTTP Request nodes follow existing naming: "Get Profile", "Get Tracked Companies", "Get Existing Job IDs", "Create Pipeline Records" |
+| JavaScript in Code nodes uses `const`, arrow functions, template literals | AGENTS.md: Code Style | Unwrap transform code follows these conventions |
+| Retry pattern: `retryOnFail: true`, `maxTries: 3`, `waitBetweenTries: 5000` | AGENTS.md: Error Handling | HTTP Request nodes configured with matching retry config |
+| Graceful degradation: failures never block upstream stages | AGENTS.md: Error Handling | GET nodes should NOT have continueOnFail (data is required); POST can use continueOnFail |
+| Empty state handling via `_empty` sentinel | AGENTS.md: Error Handling | Unwrap transform returns `_empty` sentinel when zero records found |
+
 <user_constraints>
 ## User Constraints (from CONTEXT.md)
 
@@ -583,6 +599,75 @@ Since Airtable remains active (cutover at Phase 8), testing compares NocoDB outp
 | Existing Code node `$('Get Profile')` reference breaks due to new node structure in JobSpy | JobSpy workflow fails | MEDIUM | JobSpy currently lacks Get Profile node entirely — adding it is the fix |
 | NocoDB paginates large record sets (Pipeline table) | Incomplete dedup check | LOW (125-150k chars for Job ID-only projection fits in one page) | If pagination occurs, update unwrap node to loop through `next` pages |
 | n8n non-self-hosted can't reach `http://nocodb:8080` | Scanner fails on n8n Cloud | LOW (this is a self-hosted feature by design) | Documented requirement — JobSpy sidecar also only works on self-hosted |
+
+## Validation Architecture
+
+> `workflow.nyquist_validation` is explicitly `true` in `.planning/config.json` — this section is required.
+
+### Test Framework
+
+| Property | Value |
+|----------|-------|
+| Framework | Manual workflow execution + node output inspection (no automated test harness for n8n workflows) |
+| Config file | None — workflows are JSON files, not Node.js modules |
+| Quick run command | Open n8n UI → Select workflow → Click "Execute Workflow" → Inspect node outputs |
+| Full suite command | Trigger all 4 scanner workflows manually in n8n UI; verify Pipeline records in NocoDB via `GET /api/v3/data/{baseId}/{pipelineId}/records` or NocoDB UI |
+
+### Phase Requirements → Test Map
+
+| Req ID | Behavior | Test Type | Automated Command | File Exists? |
+|--------|----------|-----------|-------------------|-------------|
+| SCAN-01 | Greenhouse scanner (1a) reads Tracked Companies + Pipeline from NocoDB, inserts new Pipeline records with same fields | Manual run-verify | n8n UI: trigger 1a, inspect "Unwrap Tracked Companies" output for correct filters (Enabled=true, Scan Method=Greenhouse API); inspect "Unwrap Existing Job IDs" for field projection; verify POST creates record in NocoDB | ❌ Wave 0 — no test infrastructure |
+| SCAN-02 | Ashby scanner (1b) produces identical Pipeline records against NocoDB | Manual run-verify | n8n UI: trigger 1b, same inspection pattern as 1a, verify where filter targets Ashby API | ❌ Wave 0 |
+| SCAN-03 | Lever scanner (1c) produces identical Pipeline records against NocoDB | Manual run-verify | n8n UI: trigger 1c, same inspection pattern as 1a, verify where filter targets Lever API | ❌ Wave 0 |
+| SCAN-04 | JobSpy scanner (1d) reads Search Queries from NocoDB, checks Pipeline for duplicates, inserts new records — including dynamic Profile geography | Manual run-verify | n8n UI: trigger 1d, inspect "Unwrap Search Queries" output for correct filters; verify "Parse & Filter Jobs" now reads `userGeographies` from Profile (not hardcoded); verify Salary Info mapping | ❌ Wave 0 |
+
+### Manual Test Cases
+
+Each scanner workflow must pass the following test cases after migration:
+
+**Test Case A: Field projection**
+1. Manually trigger the scanner workflow
+2. Inspect the "Unwrap Existing Job IDs" node output
+3. Verify each item has ONLY `Job ID` and `id` fields (no other Pipeline fields leaked)
+4. Verify the FNV-1a hash values match existing Pipeline records
+
+**Test Case B: Where clause filtering**
+1. Inspect the "Unwrap Tracked Companies" (1a/1b/1c) or "Unwrap Search Queries" (1d) node output
+2. Verify only records with `Enabled=true` are returned
+3. Verify only records matching the correct Scan Method (Greenhouse/Ashby/Lever) or Source Type (JobSpy) are returned
+
+**Test Case C: POST body format**
+1. Manually trigger the workflow with a net-new job
+2. Inspect the "Create Pipeline Records" HTTP Request node's request body
+3. Verify body format is `{ "fields": { "Job ID": "...", "Job Title": "...", ... } }`
+4. Verify the record appears in NocoDB with correct field values
+
+**Test Case D: JobSpy Profile reading (SCAN-04 only)**
+1. Manually trigger the JobSpy scanner
+2. Inspect the "Parse & Filter Jobs" Code node output
+3. Verify `userGeographies` matches the Profile's Target Geography field, not the hardcoded fallback
+
+**Test Case E: Full scanner cycle (regression)**
+1. Run all 4 scanners manually in sequence
+2. Count total Pipeline records created in NocoDB
+3. Run the same scan cycle again
+4. Verify no duplicate Pipeline records are created (FNV-1a dedup prevents re-insertion)
+
+**Test Case F: Empty state handling**
+1. Temporarily disable all Tracked Companies (set Enabled=false)
+2. Run the scanner — verify it handles zero-tracked-companies gracefully (produces `_empty` sentinel or no errors)
+3. Re-enable companies
+
+### Sampling Rate
+- **Per task commit:** "Quick run" = inspect node outputs in n8n UI for the specific workflow being modified
+- **Per wave merge:** Full manual trigger of all 4 scanners, verify each node output
+- **Phase gate:** All 6 test cases pass before `/gsd-verify-work`
+
+### Wave 0 Gaps
+- [ ] No automated test suite exists for n8n workflows — all validation is manual via n8n UI inspection
+- [ ] No way to programmatically compare Airtable output vs NocoDB output within a single run (Airtable nodes are physically replaced, not dual-wired)
+- [ ] Need to verify `NOCODB_*` env vars are present in docker-compose before any scanner runs
 
 ## Assumptions Log
 
