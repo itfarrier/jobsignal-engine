@@ -13,7 +13,7 @@ Migrate JobSignal Engine's backend database from Airtable to self-hosted NocoDB,
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Infrastructure & Bootstrap** - Deploy NocoDB via Docker Compose and create the bootstrap script for automated table creation
+- [x] **Phase 1: Infrastructure & Bootstrap** - Deploy NocoDB via Docker Compose and create the bootstrap script for automated table creation
 - [ ] **Phase 2: Data Migration** - Import existing Airtable data into NocoDB with field integrity
 - [ ] **Phase 3: Scanner Workflows Migration** - Replace Airtable nodes in all 4 scanner workflows (Greenhouse, Ashby, Lever, JobSpy)
 - [ ] **Phase 4: Evaluator Workflow Migration** - Replace Airtable nodes in the Evaluator workflow
@@ -49,7 +49,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 01-03-PLAN.md — End-to-end verification
+- [x] 01-03-PLAN.md — End-to-end verification
 
 **Wave 4** (gap closure — idempotency fix)
 
@@ -164,7 +164,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Infrastructure & Bootstrap | 3/4 | In Progress|  |
+| 1. Infrastructure & Bootstrap | 4/4 | Complete ✓ | 2026-06-10 |
 | 2. Data Migration | 0/0 | Not started | - |
 | 3. Scanner Workflows Migration | 0/0 | Not started | - |
 | 4. Evaluator Workflow Migration | 0/0 | Not started | - |
