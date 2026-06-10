@@ -243,13 +243,14 @@ def signup_or_signin(base_url, email, password):
 
 
 def get_or_create_workspace(base_url, token):
-    """Create or find a workspace for JobSignal.
+    """Find existing workspace, or create a new one for JobSignal.
 
-    Tries POST /api/v3/meta/workspaces to create "JobSignal" workspace first.
-    On 403/404 (likely CE without Enterprise API access), falls back to
-    GET /api/v3/meta/workspaces and returns the first workspace id.
-    If list is empty, tries creating a base via v1 API (/api/v1/db/meta/projects/)
-    to auto-assign to the default workspace, then extracts workspace_id.
+    GET /api/v3/meta/workspaces to list existing workspaces first.
+    If any exist, return the first workspace's id (idempotent — no creation).
+    If empty, POST /api/v3/meta/workspaces to create "JobSignal" workspace.
+    If creation fails (403/404 — CE limitation), falls back to creating a
+    base via v1 API (/api/v1/db/meta/projects/) to discover the default
+    workspace.
 
     Args:
         base_url: NocoDB base URL
@@ -259,31 +260,11 @@ def get_or_create_workspace(base_url, token):
         workspace_id string
     """
     headers = {"xc-auth": token}
-    create_url = urljoin(base_url.rstrip("/") + "/", "api/v3/meta/workspaces")
+    list_url = urljoin(base_url.rstrip("/") + "/", "api/v3/meta/workspaces")
 
-    # Try workspace creation (may be Enterprise-only)
-    r = None
+    # List existing workspaces first (idempotent path)
     try:
-        r = requests.post(
-            create_url, json={"title": "JobSignal"}, headers=headers, timeout=30
-        )
-        if r.status_code == 200:
-            data = r.json()
-            workspace_id = data.get("id")
-            if workspace_id:
-                logger.info(f"Created workspace 'JobSignal' (id: {workspace_id})")
-                return workspace_id
-    except Exception:
-        pass
-
-    if r is not None and r.status_code in (403, 404):
-        logger.info(
-            "Workspace creation not available (CE limitation) — listing existing workspaces"
-        )
-
-    # Fallback: list workspaces
-    try:
-        r = requests.get(create_url, headers=headers, timeout=30)
+        r = requests.get(list_url, headers=headers, timeout=30)
         if r.status_code == 200:
             data = r.json()
             workspace_list = data.get("list", [])
@@ -294,6 +275,28 @@ def get_or_create_workspace(base_url, token):
                 return ws_id
     except Exception:
         pass
+
+    # No existing workspace found — try to create one
+    create_url = urljoin(base_url.rstrip("/") + "/", "api/v3/meta/workspaces")
+    try:
+        r = requests.post(
+            create_url, json={"title": "JobSignal"}, headers=headers, timeout=30
+        )
+        if r.status_code == 200:
+            data = r.json()
+            workspace_id = data.get("id")
+            if workspace_id:
+                logger.info(f"Created workspace 'JobSignal' (id: {workspace_id})")
+                return workspace_id
+        else:
+            logger.info(
+                "Workspace creation not available (CE limitation) — trying v1 fallback"
+            )
+    except Exception:
+        logger.info(
+            "Workspace creation failed — trying v1 fallback to discover "
+            "default workspace"
+        )
 
     # Last resort: create a base via v1 API to get auto-assigned to default workspace
     logger.info(
@@ -836,13 +839,21 @@ def main():
                 logger.error(f"Table '{args.table}' not found in schema")
                 sys.exit(1)
 
+        # Note: NocoDB has two auth mechanisms:
+        # - JWT tokens: use xc-auth header (for user sessions)
+        # - API tokens: use xc-token header (for programmatic access)
+        # Internal table operations use JWT (xc-auth), while import_csv_data
+        # and external integrations use the API token (xc-token).
+        internal_token = jwt_token
+        external_token = api_token
+
         # Step 7: Create tables (idempotent)
         logger.info(f"Creating {len(tables_to_create)} table(s)...")
         created_tables = {}
 
         for table_def in tables_to_create:
             table_id = create_table_idempotent(
-                base_url, api_token, base_id, table_def, force=args.force
+                base_url, internal_token, base_id, table_def, force=args.force
             )
             created_tables[table_def["title"]] = table_id
 
@@ -857,7 +868,7 @@ def main():
                     table_id = created_tables.get(table_def["title"])
                     if table_id:
                         import_csv_data(
-                            base_url, api_token, base_id, table_id, csv_path
+                            base_url, external_token, base_id, table_id, csv_path
                         )
                 else:
                     logger.info(
