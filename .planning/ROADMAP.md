@@ -132,7 +132,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. CV DOCX uploads successfully via `POST /api/v2/storage/upload` and the response array is stored in the Pipeline record's attachment field
   4. CV attachment is visible, previewable, and downloadable from the NocoDB Pipeline record UI
 
-**Plans**: TBD
+**Plans**: 1 plan
+
+**Plans:**
+- [ ] 05-01-PLAN.md — Replace Airtable nodes in Tailor workflow with NocoDB HTTP GET/Unwrap/PATCH + Convert to File + Upload DOCX storage upload
 
 ### Phase 6: Housekeeper & Alerter Migration
 
