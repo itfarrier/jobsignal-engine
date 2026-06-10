@@ -14,76 +14,101 @@
     },
     {
       "parameters": {
-        "operation": "search",
-        "base": {
-          "__rl": true,
-          "value": "appE808oZ5gTSQzUY",
-          "mode": "list",
-          "cachedResultName": "Job Signal Engine",
-          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        "method": "GET",
+        "url": "={{ $env.NOCODB_URL }}/api/v3/data/{{ $env.NOCODB_BASE_ID }}/{{ $env.NOCODB_TABLE_PROFILE }}/records",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
         },
-        "table": {
-          "__rl": true,
-          "value": "tbl4hqn6sfFVbLuzd",
-          "mode": "list",
-          "cachedResultName": "Profile",
-          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tbl4hqn6sfFVbLuzd"
-        },
-        "returnAll": false,
-        "limit": 1,
         "options": {}
       },
       "id": "05e8c436-fad4-49cd-a27b-f8611a1805cd",
       "name": "Get Profile",
-      "type": "n8n-nodes-base.airtable",
-      "typeVersion": 2.1,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
         240,
         0
       ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "alwaysOutputData": true,
       "credentials": {
-        "airtableTokenApi": {
-          "id": "Ngaw78ZStScPicDq",
-          "name": "Airtable Personal Access Token account"
+        "httpHeaderAuth": {
+          "id": "TO_BE_CREATED",
+          "name": "NocoDB API"
         }
       }
     },
     {
       "parameters": {
-        "operation": "search",
-        "base": {
-          "__rl": true,
-          "value": "appE808oZ5gTSQzUY",
-          "mode": "list",
-          "cachedResultName": "Job Signal Engine",
-          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        "jsCode": "// Unwrap NocoDB Data API v3 response \u2014 transforms { records: [...], next, prev } into flat items\nconst response = $input.first().json;\nconst records = response.records || [];\n\nif (records.length === 0) {\n  return [{ json: { _empty: true, _message: 'No Profile found' } }];\n}\n\nreturn records.map(record => ({\n  json: {\n    ...record.fields,\n    id: record.id\n  }\n}));"
+      },
+      "id": "d42bbe0a-9ac3-4c58-8287-b4aa4dd4d2f9",
+      "name": "Unwrap Profile",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.NOCODB_URL }}/api/v3/data/{{ $env.NOCODB_BASE_ID }}/{{ $env.NOCODB_TABLE_PIPELINE }}/records?where=(Status,eq,New)&limit=5",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
         },
-        "table": {
-          "__rl": true,
-          "value": "tblqvCvqMIczRGjLi",
-          "mode": "list",
-          "cachedResultName": "Pipeline",
-          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tblqvCvqMIczRGjLi"
-        },
-        "filterByFormula": "={Status}='New'",
-        "returnAll": false,
-        "limit": 5,
         "options": {}
       },
       "id": "c5b5b40a-2633-416e-a5be-2434e9fc50c8",
       "name": "Get New Jobs",
-      "type": "n8n-nodes-base.airtable",
-      "typeVersion": 2.1,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
         448,
         0
       ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "alwaysOutputData": true,
       "credentials": {
-        "airtableTokenApi": {
-          "id": "Ngaw78ZStScPicDq",
-          "name": "Airtable Personal Access Token account"
+        "httpHeaderAuth": {
+          "id": "TO_BE_CREATED",
+          "name": "NocoDB API"
         }
       }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Unwrap NocoDB Data API v3 response \u2014 transforms { records: [...], next, prev } into flat items\nconst response = $input.first().json;\nconst records = response.records || [];\n\nif (records.length === 0) {\n  return [{ json: { _empty: true, _message: 'No new jobs found' } }];\n}\n\nreturn records.map(record => ({\n  json: {\n    ...record.fields,\n    id: record.id\n  }\n}));"
+      },
+      "id": "28e3b5e4-7a1b-43e5-8e3c-0f9a1b2c3d4e",
+      "name": "Unwrap New Jobs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        0
+      ]
     },
     {
       "parameters": {
@@ -1190,6 +1215,17 @@
       "main": [
         [
           {
+            "node": "Unwrap Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unwrap Profile": {
+      "main": [
+        [
+          {
             "node": "Get New Jobs",
             "type": "main",
             "index": 0
@@ -1198,6 +1234,17 @@
       ]
     },
     "Get New Jobs": {
+      "main": [
+        [
+          {
+            "node": "Unwrap New Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unwrap New Jobs": {
       "main": [
         [
           {
