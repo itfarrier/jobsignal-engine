@@ -72,7 +72,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Data migration runs via the bootstrap script's `--import-data` flag or a standalone migration script using Airtable PAT authentication
   4. Spot-check of 10+ records per table confirms values, selects, and links match originals
 
-**Plans**: TBD
+**Plans**: 1 plan
+
+**Plans:**
+- [ ] 02-01-PLAN.md — Bootstrap update, Airtable import, and data verification
 
 ### Phase 3: Scanner Workflows Migration
 
@@ -165,7 +168,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Infrastructure & Bootstrap | 4/4 | Complete ✓ | 2026-06-10 |
-| 2. Data Migration | 0/0 | Not started | - |
+| 2. Data Migration | 0/1 | In progress | - |
 | 3. Scanner Workflows Migration | 0/0 | Not started | - |
 | 4. Evaluator Workflow Migration | 0/0 | Not started | - |
 | 5. Tailor Workflow & Attachments | 0/0 | Not started | - |
