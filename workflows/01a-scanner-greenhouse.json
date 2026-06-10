@@ -14,41 +14,6 @@
     },
     {
       "parameters": {
-        "operation": "search",
-        "base": {
-          "__rl": true,
-          "value": "appE808oZ5gTSQzUY",
-          "mode": "list",
-          "cachedResultName": "Job Signal Engine",
-          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
-        },
-        "table": {
-          "__rl": true,
-          "value": "tbl5yytlFEcocSK2v",
-          "mode": "list",
-          "cachedResultName": "Tracked Companies",
-          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tbl5yytlFEcocSK2v"
-        },
-        "filterByFormula": "=AND({Enabled}=TRUE(),{Scan Method}='Greenhouse API')",
-        "options": {}
-      },
-      "id": "d1b68c76-80a8-4a6f-adb7-9f0f71008045",
-      "name": "Get Tracked Companies",
-      "type": "n8n-nodes-base.airtable",
-      "typeVersion": 2.1,
-      "position": [
-        576,
-        -400
-      ],
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "Ngaw78ZStScPicDq",
-          "name": "Airtable Personal Access Token account"
-        }
-      }
-    },
-    {
-      "parameters": {
         "options": {}
       },
       "id": "9ffa88fb-5781-4b0f-8ca5-c7dc2e91972a",
@@ -123,47 +88,7 @@
     },
     {
       "parameters": {
-        "operation": "search",
-        "base": {
-          "__rl": true,
-          "value": "appE808oZ5gTSQzUY",
-          "mode": "list",
-          "cachedResultName": "Job Signal Engine",
-          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
-        },
-        "table": {
-          "__rl": true,
-          "value": "tblqvCvqMIczRGjLi",
-          "mode": "list",
-          "cachedResultName": "Pipeline",
-          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tblqvCvqMIczRGjLi"
-        },
-        "options": {
-          "fields": [
-            "Job ID"
-          ]
-        }
-      },
-      "id": "bf70a865-5d1d-4b77-81ca-568ade91b576",
-      "name": "Get Existing Job IDs",
-      "type": "n8n-nodes-base.airtable",
-      "typeVersion": 2.1,
-      "position": [
-        2496,
-        -400
-      ],
-      "alwaysOutputData": true,
-      "executeOnce": true,
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "Ngaw78ZStScPicDq",
-          "name": "Airtable Personal Access Token account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "// Filter aggregated jobs against existing Job IDs in Pipeline (deduplication)\n\nconst aggregatedJobs = $('Aggregate All Jobs').all();\nconst existingRecords = $('Get Existing Job IDs').all();\n\nconst existingIds = new Set();\nfor (const record of existingRecords) {\n  let jobId = null;\n  if (record.json.fields && record.json.fields['Job ID']) {\n    jobId = record.json.fields['Job ID'];\n  } else if (record.json['Job ID']) {\n    jobId = record.json['Job ID'];\n  }\n  if (jobId) existingIds.add(jobId);\n}\n\nconst netNew = aggregatedJobs.filter(item => !existingIds.has(item.json.jobId));\n\n// Safety brake: cap at 100 new records per run\nif (netNew.length > 100) {\n  throw new Error(`Safety brake: ${netNew.length} net-new jobs exceeds 100 limit. Review your Tracked Companies title keywords — they may be too broad. Increase the cap in this Code node if this is intentional.`);\n}\n\nif (netNew.length === 0) {\n  return [{ json: { _empty: true, _message: `${aggregatedJobs.length} jobs found, all already in Pipeline` } }];\n}\n\nreturn netNew;"
+        "jsCode": "// Filter aggregated jobs against existing Job IDs in Pipeline (deduplication)\n\nconst aggregatedJobs = $('Aggregate All Jobs').all();\nconst existingRecords = $('Get Existing Job IDs').all();\n\nconst existingIds = new Set();\nfor (const record of existingRecords) {\n  let jobId = null;\n  if (record.json.fields && record.json.fields['Job ID']) {\n    jobId = record.json.fields['Job ID'];\n  } else if (record.json['Job ID']) {\n    jobId = record.json['Job ID'];\n  }\n  if (jobId) existingIds.add(jobId);\n}\n\nconst netNew = aggregatedJobs.filter(item => !existingIds.has(item.json.jobId));\n\n// Safety brake: cap at 100 new records per run\nif (netNew.length > 100) {\n  throw new Error(`Safety brake: ${netNew.length} net-new jobs exceeds 100 limit. Review your Tracked Companies title keywords \u2014 they may be too broad. Increase the cap in this Code node if this is intentional.`);\n}\n\nif (netNew.length === 0) {\n  return [{ json: { _empty: true, _message: `${aggregatedJobs.length} jobs found, all already in Pipeline` } }];\n}\n\nreturn netNew;"
       },
       "id": "b9a7cb59-e86d-49c6-8f98-a436c10bd8fd",
       "name": "Deduplicate vs Pipeline",
@@ -174,394 +99,6 @@
         -400
       ],
       "executeOnce": true
-    },
-    {
-      "parameters": {
-        "operation": "create",
-        "base": {
-          "__rl": true,
-          "value": "appE808oZ5gTSQzUY",
-          "mode": "list",
-          "cachedResultName": "Job Signal Engine",
-          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
-        },
-        "table": {
-          "__rl": true,
-          "value": "tblqvCvqMIczRGjLi",
-          "mode": "list",
-          "cachedResultName": "Pipeline",
-          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tblqvCvqMIczRGjLi"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "Job ID": "={{ $json.jobId }}",
-            "Job Title": "={{ $json.jobTitle }}",
-            "Company": "={{ $json.company }}",
-            "Location": "={{ $json.location }}",
-            "Apply Link": "={{ $json.applyLink }}",
-            "Job Description": "={{ $json.jobDescription }}",
-            "Source": "={{ $json.source }}",
-            "Source Query": "={{ $json.sourceQuery }}",
-            "Source Tag": "={{ $json.sourceTag }}",
-            "Discovery Date": "={{ $json.discoveryDate }}",
-            "Status": "New"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "Job ID",
-              "displayName": "Job ID",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Job Title",
-              "displayName": "Job Title",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Company",
-              "displayName": "Company",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Location",
-              "displayName": "Location",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Apply Link",
-              "displayName": "Apply Link",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Job Description",
-              "displayName": "Job Description",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Source",
-              "displayName": "Source",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "LinkedIn",
-                  "value": "LinkedIn"
-                },
-                {
-                  "name": "Indeed",
-                  "value": "Indeed"
-                },
-                {
-                  "name": "Glassdoor",
-                  "value": "Glassdoor"
-                },
-                {
-                  "name": "Google Jobs",
-                  "value": "Google Jobs"
-                },
-                {
-                  "name": "ZipRecruiter",
-                  "value": "ZipRecruiter"
-                },
-                {
-                  "name": "Greenhouse",
-                  "value": "Greenhouse"
-                },
-                {
-                  "name": "Ashby",
-                  "value": "Ashby"
-                },
-                {
-                  "name": "Lever",
-                  "value": "Lever"
-                },
-                {
-                  "name": "Manual",
-                  "value": "Manual"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Source Query",
-              "displayName": "Source Query",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Source Tag",
-              "displayName": "Source Tag",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Discovery Date",
-              "displayName": "Discovery Date",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "dateTime",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Status",
-              "displayName": "Status",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "New",
-                  "value": "New"
-                },
-                {
-                  "name": "Evaluated",
-                  "value": "Evaluated"
-                },
-                {
-                  "name": "Shortlisted",
-                  "value": "Shortlisted"
-                },
-                {
-                  "name": "Applied",
-                  "value": "Applied"
-                },
-                {
-                  "name": "Interview",
-                  "value": "Interview"
-                },
-                {
-                  "name": "Offer",
-                  "value": "Offer"
-                },
-                {
-                  "name": "Rejected",
-                  "value": "Rejected"
-                },
-                {
-                  "name": "Archived",
-                  "value": "Archived"
-                }
-              ],
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Fit Score",
-              "displayName": "Fit Score",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Fit Tier",
-              "displayName": "Fit Tier",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "High",
-                  "value": "High"
-                },
-                {
-                  "name": "Medium",
-                  "value": "Medium"
-                },
-                {
-                  "name": "Low",
-                  "value": "Low"
-                }
-              ],
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Match Reasoning",
-              "displayName": "Match Reasoning",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Matched Skills",
-              "displayName": "Matched Skills",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Missing Skills",
-              "displayName": "Missing Skills",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "CV Tailoring Notes",
-              "displayName": "CV Tailoring Notes",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Salary Info",
-              "displayName": "Salary Info",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "AI Evaluation Cost",
-              "displayName": "AI Evaluation Cost",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Applied Date",
-              "displayName": "Applied Date",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "dateTime",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Response Date",
-              "displayName": "Response Date",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "dateTime",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Outcome Notes",
-              "displayName": "Outcome Notes",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {
-          "typecast": true
-        }
-      },
-      "id": "16d06f77-2bc5-47c9-ae6e-44dc64445b0f",
-      "name": "Create Pipeline Records",
-      "type": "n8n-nodes-base.airtable",
-      "typeVersion": 2.1,
-      "position": [
-        3248,
-        -400
-      ],
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 5000,
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "Ngaw78ZStScPicDq",
-          "name": "Airtable Personal Access Token account"
-        }
-      }
     },
     {
       "parameters": {
@@ -650,40 +187,6 @@
     },
     {
       "parameters": {
-        "operation": "search",
-        "base": {
-          "__rl": true,
-          "value": "appE808oZ5gTSQzUY",
-          "mode": "list",
-          "cachedResultName": "Job Signal Engine",
-          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
-        },
-        "table": {
-          "__rl": true,
-          "value": "tbl4hqn6sfFVbLuzd",
-          "mode": "list",
-          "cachedResultName": "Profile",
-          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tbl4hqn6sfFVbLuzd"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.airtable",
-      "typeVersion": 2.1,
-      "position": [
-        352,
-        -400
-      ],
-      "id": "00ea5696-07aa-4a3d-93fc-01c5fb5d1ef8",
-      "name": "Get Profile",
-      "credentials": {
-        "airtableTokenApi": {
-          "id": "Ngaw78ZStScPicDq",
-          "name": "Airtable Personal Access Token account"
-        }
-      }
-    },
-    {
-      "parameters": {
         "conditions": {
           "options": {
             "caseSensitive": true,
@@ -715,6 +218,191 @@
       ],
       "id": "b89cef63-a72a-47e7-b639-94bfc089bb31",
       "name": "If"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.NOCODB_URL }}/api/v3/data/{{ $env.NOCODB_BASE_ID }}/{{ $env.NOCODB_TABLE_PROFILE }}/records",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Get Profile",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        352,
+        -400
+      ],
+      "id": "bc49e4d2-03f8-4829-aeab-501a3904294d",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "TO_BE_CREATED",
+          "name": "NocoDB API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Unwrap NocoDB Data API v3 response \u2014 transforms { records: [...], next, prev } into flat items\nconst response = $input.first().json;\nconst records = response.records || [];\n\nif (records.length === 0) {\n  return [{ json: { _empty: true, _message: 'No Profile found' } }];\n}\n\nreturn records.map(record => ({\n  json: {\n    ...record.fields,\n    id: record.id\n  }\n}));"
+      },
+      "name": "Unwrap Profile",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        472,
+        -400
+      ],
+      "id": "8fe1108d-9ee3-4553-97c8-e8b187c98757"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.NOCODB_URL }}/api/v3/data/{{ $env.NOCODB_BASE_ID }}/{{ $env.NOCODB_TABLE_COMPANIES }}/records?where=(Enabled,is,true)~and(\"Scan Method\",eq,\"Greenhouse API\")",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Get Tracked Companies",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        576,
+        -400
+      ],
+      "id": "2ab5001e-9a3a-4c5e-a5fc-f891b66214e5",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "TO_BE_CREATED",
+          "name": "NocoDB API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Unwrap NocoDB Data API v3 response\nconst response = $input.first().json;\nconst records = response.records || [];\n\nif (records.length === 0) {\n  return [{ json: { _empty: true, _message: 'No enabled Tracked Companies found (Greenhouse)' } }];\n}\n\nreturn records.map(record => ({\n  json: { ...record.fields, id: record.id }\n}));"
+      },
+      "name": "Unwrap Tracked Companies",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        -400
+      ],
+      "id": "626af3f8-be00-475a-bb9e-f95b9368341d"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.NOCODB_URL }}/api/v3/data/{{ $env.NOCODB_BASE_ID }}/{{ $env.NOCODB_TABLE_PIPELINE }}/records?fields=Job+ID",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Get Existing Job IDs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2496,
+        -400
+      ],
+      "id": "7fbcfc8b-6e39-448e-a227-c0b198d63c0e",
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "TO_BE_CREATED",
+          "name": "NocoDB API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Unwrap NocoDB Data API v3 \u2014 field-projected response (only 'Job ID' field)\nconst response = $input.first().json;\nconst records = response.records || [];\n\nif (records.length === 0) {\n  return [{ json: { _empty: true, _message: 'No existing Job IDs found' } }];\n}\n\nreturn records.map(record => ({\n  json: {\n    'Job ID': record.fields['Job ID'],\n    id: record.id\n  }\n}));"
+      },
+      "name": "Unwrap Existing Job IDs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2592,
+        -400
+      ],
+      "id": "4d25e83b-c154-4cc3-a129-6e5f9f2f81a7"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.NOCODB_URL }}/api/v3/data/{{ $env.NOCODB_BASE_ID }}/{{ $env.NOCODB_TABLE_PIPELINE }}/records",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"fields\": {\n    \"Job ID\": \"{{ $json.jobId }}\",\n    \"Job Title\": \"{{ $json.jobTitle }}\",\n    \"Company\": \"{{ $json.company }}\",\n    \"Location\": \"{{ $json.location }}\",\n    \"Apply Link\": \"{{ $json.applyLink }}\",\n    \"Job Description\": \"{{ $json.jobDescription }}\",\n    \"Source\": \"{{ $json.source }}\",\n    \"Source Query\": \"{{ $json.sourceQuery }}\",\n    \"Source Tag\": \"{{ $json.sourceTag }}\",\n    \"Discovery Date\": \"{{ $json.discoveryDate }}\",\n    \"Status\": \"New\"\n  }\n}",
+        "options": {}
+      },
+      "name": "Create Pipeline Records",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3248,
+        -400
+      ],
+      "id": "75d9fd1f-b4cd-4cf2-a1bf-04cc0789c984",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "alwaysOutputData": true,
+      "continueOnFail": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "TO_BE_CREATED",
+          "name": "NocoDB API"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -734,7 +422,7 @@
       "main": [
         [
           {
-            "node": "Loop Companies",
+            "node": "Unwrap Tracked Companies",
             "type": "main",
             "index": 0
           }
@@ -807,7 +495,7 @@
       "main": [
         [
           {
-            "node": "Deduplicate vs Pipeline",
+            "node": "Unwrap Existing Job IDs",
             "type": "main",
             "index": 0
           }
@@ -873,7 +561,7 @@
       "main": [
         [
           {
-            "node": "Get Tracked Companies",
+            "node": "Unwrap Profile",
             "type": "main",
             "index": 0
           }
@@ -885,6 +573,39 @@
         [
           {
             "node": "Create Pipeline Records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unwrap Profile": {
+      "main": [
+        [
+          {
+            "node": "Get Tracked Companies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unwrap Tracked Companies": {
+      "main": [
+        [
+          {
+            "node": "Loop Companies",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unwrap Existing Job IDs": {
+      "main": [
+        [
+          {
+            "node": "Deduplicate vs Pipeline",
             "type": "main",
             "index": 0
           }
