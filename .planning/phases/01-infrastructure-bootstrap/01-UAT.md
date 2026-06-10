@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 01-infrastructure-bootstrap
 source: 01-01-SUMMARY.md, 01-02-SUMMARY.md
 started: 2026-06-09T11:39:00Z
-updated: 2026-06-09T11:45:00Z
+updated: 2026-06-09T11:50:00Z
 ---
 
 ## Current Test
@@ -64,9 +64,16 @@ blocked: 0
   reason: "User confirmed: Running bootstrap a second time must detect tables already exist and skip creation. Script creates new workspace+base every run, hits CE workspace limit on subsequent runs."
   severity: major
   test: 4
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "get_or_create_workspace() tries POST to create workspace unconditionally instead of listing first. create_base() is always called after workspace is obtained, creating a new base each run. NocoDB CE has 1-workspace limit, so subsequent runs fail with 'Maximum workspace limit reached'."
+  artifacts:
+    - path: "scripts/nocodb_bootstrap.py"
+      issue: "get_or_create_workspace() line 245-321: tries POST create first, lists only on failure. Should invert the order — list first, create if empty."
+    - path: "scripts/nocodb_bootstrap.py"
+      issue: "main() line 781-785: calls get_or_create_workspace + create_base every run (not --skip-setup), guaranteeing new workspace+base on each invocation."
+  missing:
+    - "In get_or_create_workspace(): list existing workspaces before attempting creation"
+    - "Add get_or_create_base(): check for existing bases in workspace before creating new one"
+    - "Default mode should be idempotent: no new workspace+base created if they already exist"
   debug_session: ""
 
 - truth: "python scripts/nocodb_bootstrap.py --force drops and recreates all 4 tables"
@@ -74,7 +81,10 @@ blocked: 0
   reason: "Same root cause as test 4 -- script creates new workspace every run, hitting CE workspace limit"
   severity: major
   test: 8
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "Same root cause as test 4: unconditional workspace+base creation on each run. --force cannot function because workspace creation fails before table operations begin."
+  artifacts:
+    - path: "scripts/nocodb_bootstrap.py"
+      issue: "Same fix as test 4 — idempotent workspace/base lookup required before --force table operations"
+  missing:
+    - "Same fix as test 4"
   debug_session: ""
