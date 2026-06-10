@@ -28,13 +28,14 @@ Discover, score, and prep every relevant job opportunity without manual effort �
 - ✓ **Dynamic geography filtering** — Filter by country/region from Profile, no code changes — existing
 - ✓ **Deduplication via FNV-1a hash** — Same job from multiple sources = one Pipeline record — existing
 - ✓ **Airtable bootstrap script** — `scripts/airtable_bootstrap.py` schema-as-code setup with `airtable/schema.json` — existing
+- ✓ **Scanner workflows on NocoDB** — All 4 scanner workflows (Greenhouse, Ashby, Lever, JobSpy) use NocoDB HTTP Request nodes; 16 HTTP nodes + 11 Unwrap Code nodes deployed — Phase 3
 
 ### Active
 
 - [ ] **MIGR-01**: Deploy NocoDB as Docker service alongside existing stack with PostgreSQL backend
 - [ ] **MIGR-02**: Migrate Airtable schema (4 tables) to NocoDB — Profile, Tracked Companies, Pipeline, Search Queries
 - [ ] **MIGR-03**: Migrate existing Airtable data to NocoDB via import or bootstrap script
-- [ ] **MIGR-04**: Replace Airtable nodes in all 8 n8n workflows with NocoDB nodes or HTTP Request nodes
+- [/] **MIGR-04**: Replace Airtable nodes in all 8 n8n workflows with NocoDB nodes or HTTP Request nodes (4/8 done — scanner workflows 1a-1d complete)
 - [ ] **MIGR-05**: Adapt CV attachment workflow to use NocoDB's storage/upload API instead of Airtable attachment fields
 - [ ] **MIGR-06**: Update docker-compose.example.yml to include NocoDB service
 - [ ] **MIGR-07**: Update documentation (SETUP.md, AIRTABLE-SCHEMA.md, README architecture diagrams, costs)
@@ -50,6 +51,10 @@ Discover, score, and prep every relevant job opportunity without manual effort �
 - **UI/frontend** — NocoDB provides its own spreadsheet UI; no custom frontend
 - **Multi-user support** — Remains single-user pipeline
 - **Performance optimization** — Not addressing the sequential pipeline timing or Airtable rate-limit issues (these are existing tech debt tracked in codebase/CONCERNS.md)
+
+## Current State
+
+Phase 1-3 complete. NocoDB infrastructure deployed, schema and data imported, 4 scanner workflows migrated. Next: evaluator (02), tailor (03), housekeeper (04), alerter (06) workflow migrations.
 
 ## Context
 
@@ -82,6 +87,8 @@ Research findings from codebase analysis:
 | Cutover migration | Cleanest approach; no dual-write complexity; Airtable can be kept as read-only fallback briefly | — Pending |
 | NocoDB in docker-compose | Simplest deployment; shares network with n8n and sidecars; consistent with existing infra | — Pending |
 | Replace Airtable nodes in-place | Each Airtable node in workflows gets replaced by NocoDB or HTTP Request node without changing workflow structure | — Pending |
+| Unwrap Code nodes after each GET | NocoDB Data API v3 returns `{ records: [...] }` — Code node unwraps to flat items for downstream compatibility | ✓ Validated in Phase 3 |
+| Code nodes reference Unwrap, not HTTP | Code/Set nodes referencing `$('Get X')` must use `$('Unwrap X')` instead to get flat items, not raw NocoDB response | ✓ Discovered via code review in Phase 3 |
 
 ## Evolution
 
@@ -101,4 +108,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-09 after initialization*
+*Last updated: 2026-06-10 after Phase 3 completion*
