@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Infrastructure & Bootstrap** - Deploy NocoDB via Docker Compose and create the bootstrap script for automated table creation
 - [x] **Phase 2: Data Migration** - Import existing Airtable data into NocoDB with field integrity
-- [ ] **Phase 3: Scanner Workflows Migration** - Replace Airtable nodes in all 4 scanner workflows (Greenhouse, Ashby, Lever, JobSpy)
+- [x] **Phase 3: Scanner Workflows Migration** - Replace Airtable nodes in all 4 scanner workflows (Greenhouse, Ashby, Lever, JobSpy) (completed 2026-06-10)
 - [ ] **Phase 4: Evaluator Workflow Migration** - Replace Airtable nodes in the Evaluator workflow
 - [ ] **Phase 5: Tailor Workflow & Attachments Migration** - Replace Airtable nodes in Tailor and adapt CV DOCX upload to NocoDB storage API
 - [ ] **Phase 6: Housekeeper & Alerter Migration** - Replace Airtable nodes in Housekeeper and Alerter workflows
@@ -75,6 +75,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 1 plan
 
 **Plans:**
+
 - [x] 02-01-PLAN.md — Bootstrap update, Airtable import, and data verification
 
 ### Phase 3: Scanner Workflows Migration
@@ -93,14 +94,14 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Wave 1**
 
-- [ ] 03-01-PLAN.md — Infrastructure setup: NOCODB_* env vars + credential docs
+- [x] 03-01-PLAN.md — Infrastructure setup: NOCODB_* env vars + credential docs
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 03-02-PLAN.md — Greenhouse scanner (1a) — reference pattern, 4 Airtable nodes replaced
-- [ ] 03-03-PLAN.md — Ashby scanner (1b) — same pattern, Ashby API filter
-- [ ] 03-04-PLAN.md — Lever scanner (1c) — same pattern, Lever API filter
-- [ ] 03-05-PLAN.md — JobSpy scanner (1d) — Get Profile + 3 Airtable replaced + code edit
+- [x] 03-02-PLAN.md — Greenhouse scanner (1a) — reference pattern, 4 Airtable nodes replaced
+- [x] 03-03-PLAN.md — Ashby scanner (1b) — same pattern, Ashby API filter
+- [x] 03-04-PLAN.md — Lever scanner (1c) — same pattern, Lever API filter
+- [x] 03-05-PLAN.md — JobSpy scanner (1d) — Get Profile + 3 Airtable replaced + code edit
 
 ### Phase 4: Evaluator Workflow Migration
 
@@ -114,7 +115,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. High Fit email alerts trigger correctly for 8+ score jobs read from NocoDB Pipeline records
   4. Output Pipeline records match pre-migration (same scores, same reasoning, same interview questions)
 
-**Plans**: TBD
+**Plans**: 1 plan
+
+**Plans:**
+- [ ] 04-01-PLAN.md — Replace Airtable nodes in Evaluator workflow with NocoDB HTTP Request + Unwrap nodes + update code references
 
 ### Phase 5: Tailor Workflow & Attachments Migration
 
@@ -180,7 +184,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 |-------|----------------|--------|-----------|
 | 1. Infrastructure & Bootstrap | 4/4 | Complete ✓ | 2026-06-10 |
 | 2. Data Migration | 1/1 | Complete ✓ | 2026-06-10 |
-| 3. Scanner Workflows Migration | 0/5 | Planned | - |
+| 3. Scanner Workflows Migration | 5/5 | Complete    | 2026-06-10 |
 | 4. Evaluator Workflow Migration | 0/0 | Not started | - |
 | 5. Tailor Workflow & Attachments | 0/0 | Not started | - |
 | 6. Housekeeper & Alerter Migration | 0/0 | Not started | - |
