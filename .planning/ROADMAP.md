@@ -37,7 +37,8 @@ Decimal phases appear between their surrounding integers in numeric order.
   4. `python scripts/nocodb_bootstrap.py --import-data` seeds tables from CSV/export data
   5. docker-compose.example.yml includes NocoDB service with API token, JWT secret, and attachment size limit configuration
 
-**Plans**: 3 plansPlans:
+**Plans**: 4 plans
+
 **Wave 1**
 
 - [ ] 01-01-PLAN.md — NocoDB Docker infrastructure + Schema definition
@@ -49,6 +50,10 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Wave 3** *(blocked on Wave 2 completion)*
 
 - [ ] 01-03-PLAN.md — End-to-end verification
+
+**Wave 4** (gap closure — idempotency fix)
+
+- [ ] 01-04-PLAN.md — Idempotent workspace + base creation (gap closure)
 
 **Cross-cutting constraints:**
 
