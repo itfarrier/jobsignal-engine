@@ -55,6 +55,18 @@ services:
       - WEBHOOK_URL=https://your-domain.com/
       - NOCDB_API_TOKEN=REPLACE_WITH_TOKEN
       - NOCDB_HOST=http://nocodb:8080
+        # NocoDB API credential setup in n8n UI:
+        #   1. Create HTTP Header Auth credential named "NocoDB API"
+        #   2. Header Name: xc-token
+        #   3. Header Value: the NOCDB_API_TOKEN value from bootstrap script output
+        #   4. All 4 scanner HTTP Request nodes reference this credential
+        # NocoDB table IDs — replace with values from bootstrap script output
+      - NOCODB_URL=http://nocodb:8080     # Canonical name per D-03 (alias for NOCDB_HOST)
+      - NOCODB_BASE_ID=<p_xxxxx>          # From bootstrap output — run: python scripts/nocodb_bootstrap.py
+      - NOCODB_TABLE_PROFILE=<m_xxxxx>    # From bootstrap output
+      - NOCODB_TABLE_COMPANIES=<m_xxxxx>  # From bootstrap output
+      - NOCODB_TABLE_PIPELINE=<m_xxxxx>   # From bootstrap output
+      - NOCODB_TABLE_QUERIES=<m_xxxxx>    # From bootstrap output
     volumes:
       - n8n_storage:/home/node/.n8n
       - shared_tmp:/tmp/jobsignal
