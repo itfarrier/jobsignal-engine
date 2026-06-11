@@ -24,10 +24,10 @@
 
 ### Workflow Migration — Scanners (Wf 1a, 1b, 1c, 1d)
 
-- [ ] **SCAN-01**: Replace Airtable nodes in Greenhouse scanner (1a) with NocoDB HTTP Request nodes — reading Tracked Companies, checking Pipeline for duplicates via FNV-1a hash, inserting new Pipeline records
-- [ ] **SCAN-02**: Same replacement for Ashby scanner (1b)
-- [ ] **SCAN-03**: Same replacement for Lever scanner (1c)
-- [ ] **SCAN-04**: Same replacement for JobSpy scanner (1d) — including reading Search Queries from NocoDB
+- [x] **SCAN-01**: Replace Airtable nodes in Greenhouse scanner (1a) with NocoDB HTTP Request nodes — reading Tracked Companies, checking Pipeline for duplicates via FNV-1a hash, inserting new Pipeline records
+- [x] **SCAN-02**: Same replacement for Ashby scanner (1b)
+- [x] **SCAN-03**: Same replacement for Lever scanner (1c)
+- [x] **SCAN-04**: Same replacement for JobSpy scanner (1d) — including reading Search Queries from NocoDB
 
 ### Workflow Migration — Evaluator (Wf 2)
 
@@ -89,10 +89,10 @@
 | BOOT-04 | Phase 1 | Pending |
 | DATA-01 | Phase 2 | Pending |
 | DATA-02 | Phase 2 | Pending |
-| SCAN-01 | Phase 3 | Pending |
-| SCAN-02 | Phase 3 | Pending |
-| SCAN-03 | Phase 3 | Pending |
-| SCAN-04 | Phase 3 | Pending |
+| SCAN-01 | Phase 3 | Complete |
+| SCAN-02 | Phase 3 | Complete |
+| SCAN-03 | Phase 3 | Complete |
+| SCAN-04 | Phase 3 | Complete |
 | EVAL-01 | Phase 4 | Pending |
 | EVAL-02 | Phase 4 | Pending |
 | TAIL-01 | Phase 5 | Pending |
@@ -112,6 +112,7 @@
 | VER-04 | Phase 8 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 29 total
 - Mapped to phases: 29
 - Unmapped: 0 ✓

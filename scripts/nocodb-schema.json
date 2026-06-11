@@ -358,12 +358,12 @@
           "description": "Extracted from JD if present"
         },
         {
-          "title": "AI Evaluation Cost",
+          "title":           "AI Evaluation Cost",
           "type": "Decimal",
           "required": false,
           "description": "Token cost for this evaluation",
           "options": {
-            "precision": 6
+            "precision": 5
           }
         },
         {
@@ -397,12 +397,12 @@
           "description": "Markdown version of tailored CV"
         },
         {
-          "title": "CV Tailoring Cost",
+          "title":           "CV Tailoring Cost",
           "type": "Decimal",
           "required": false,
           "description": "Token cost for CV tailoring",
           "options": {
-            "precision": 6
+            "precision": 5
           }
         },
         {
@@ -424,12 +424,12 @@
           "description": "5 STAR stories (High Fit only)"
         },
         {
-          "title": "Interview Prep Cost",
+          "title":           "Interview Prep Cost",
           "type": "Decimal",
           "required": false,
           "description": "Token cost for interview prep",
           "options": {
-            "precision": 6
+            "precision": 5
           }
         }
       ]

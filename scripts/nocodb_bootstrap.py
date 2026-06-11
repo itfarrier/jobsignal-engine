@@ -12,6 +12,7 @@ Usage:
     python scripts/nocodb_bootstrap.py --import-data ./airtable/templates  # Seed from CSV files
     python scripts/nocodb_bootstrap.py --skip-setup                       # Use existing workspace/base
     python scripts/nocodb_bootstrap.py --token-only                       # Print existing API token
+    python scripts/nocodb_bootstrap.py --workspace-only                   # Create workspace + base only (skip tables)
 
 Designed for JobSignal Engine Phase 1 (Infrastructure Bootstrap).
 Called after `docker-compose up -d` to automate NocoDB first-time setup —
@@ -768,6 +769,11 @@ def main():
         action="store_true",
         help="Only output the API token from NOCDB_API_TOKEN env var and exit",
     )
+    parser.add_argument(
+        "--workspace-only",
+        action="store_true",
+        help="Create workspace + base only (skip table creation — import from Airtable creates tables)",
+    )
 
     args = parser.parse_args()
 
@@ -786,6 +792,16 @@ def main():
             logger.error("No API token found in NOCDB_API_TOKEN env var")
             sys.exit(1)
         return
+
+    # --- --workspace-only mode ---
+    if args.workspace_only:
+        if args.table:
+            logger.error(
+                "--table is meaningless without table creation; use without --workspace-only"
+            )
+            sys.exit(1)
+        if args.import_data:
+            logger.warning("--import-data is ignored when --workspace-only is set")
 
     # --- --force destructive-action warning ---
     if args.force:
@@ -883,37 +899,42 @@ def main():
         internal_token = jwt_token
         external_token = api_token
 
-        # Step 7: Create tables (idempotent)
-        logger.info(f"Creating {len(tables_to_create)} table(s)...")
+        # Step 7: Create tables (idempotent) — skipped in --workspace-only mode
         created_tables = {}
+        if not args.workspace_only:
+            logger.info(f"Creating {len(tables_to_create)} table(s)...")
 
-        for table_def in tables_to_create:
-            table_id = create_table_idempotent(
-                base_url, internal_token, base_id, table_def, force=args.force
-            )
-            created_tables[table_def["title"]] = table_id
-
-        # Step 8: Import CSV data if requested
-        if args.import_data:
-            logger.info(f"Importing data from {args.import_data}...")
             for table_def in tables_to_create:
-                csv_path = os.path.join(
-                    args.import_data, f"{table_def['title']}-Grid view.csv"
+                table_id = create_table_idempotent(
+                    base_url, internal_token, base_id, table_def, force=args.force
                 )
-                if os.path.exists(csv_path):
-                    table_id = created_tables.get(table_def["title"])
-                    if table_id:
-                        import_csv_data(
-                            base_url, external_token, base_id, table_id, csv_path
-                        )
-                else:
-                    logger.info(
-                        f"No CSV found for '{table_def['title']}' "
-                        f"(expected: {csv_path})"
-                    )
+                created_tables[table_def["title"]] = table_id
 
-        logger.info("Bootstrap complete.")
-        logger.info(f"Tables created: {', '.join(created_tables.keys())}")
+            # Step 8: Import CSV data if requested
+            if args.import_data:
+                logger.info(f"Importing data from {args.import_data}...")
+                for table_def in tables_to_create:
+                    csv_path = os.path.join(
+                        args.import_data, f"{table_def['title']}-Grid view.csv"
+                    )
+                    if os.path.exists(csv_path):
+                        table_id = created_tables.get(table_def["title"])
+                        if table_id:
+                            import_csv_data(
+                                base_url, external_token, base_id, table_id, csv_path
+                            )
+                    else:
+                        logger.info(
+                            f"No CSV found for '{table_def['title']}' "
+                            f"(expected: {csv_path})"
+                        )
+
+        if args.workspace_only:
+            logger.info("Bootstrap complete (workspace-only mode).")
+            logger.info("Base is ready for importing from Airtable via NocoDB UI.")
+        else:
+            logger.info("Bootstrap complete.")
+            logger.info(f"Tables created: {', '.join(created_tables.keys())}")
 
     except RuntimeError as e:
         logger.error(f"Bootstrap failed: {e}")

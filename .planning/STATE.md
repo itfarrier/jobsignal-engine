@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: milestone
 status: executing
 stopped_at: Phase 5 context gathered
-last_updated: "2026-06-11T06:26:43.882Z"
-last_activity: 2026-06-10 -- Phase 04 marked complete
+last_updated: "2026-06-11T06:33:33.423Z"
+last_activity: 2026-06-11 -- Phase 05 execution started
 progress:
   total_phases: 8
   completed_phases: 4
-  total_plans: 11
+  total_plans: 12
   completed_plans: 11
   percent: 50
 ---
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-09)
 
 **Core value:** Discover, score, and prep every relevant job opportunity without manual effort — with a fully self-hosted database backend.
-**Current focus:** Phase 05 — tailor-workflow-migration (next)
+**Current focus:** Phase 05 — tailor-workflow-attachments-migration
 
 ## Current Position
 
-Phase: 04 — COMPLETE
+Phase: 05 (tailor-workflow-attachments-migration) — EXECUTING
 Plan: 1 of 1
-Status: Ready to execute
-Last activity: 2026-06-10 -- Phase 04 marked complete
+Status: Executing Phase 05
+Last activity: 2026-06-11 -- Phase 05 execution started
 
 Progress: [████████░░] 50% (4/8 phases complete)
 

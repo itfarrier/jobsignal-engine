@@ -679,22 +679,13 @@ Each scanner workflow must pass the following test cases after migration:
 | A4 | Existing "Deduplicate vs Pipeline" Code node handles flat item format with `record.json['Job ID']` correctly | Architecture Patterns | Code node already has fallback for `record.json['Job ID']` when `record.json.fields` is undefined — visually confirmed in workflow JSON |
 | A5 | NocoDB checkbox/boolean filtering uses `(Enabled,is,true)` syntax | Architecture Patterns | Docs show `is` operator for boolean; confirmed by comparison operators table |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Which env var naming convention?**
-   - What we know: Existing `NOCDB_HOST` and `NOCDB_API_TOKEN` use `NOCDB` (typo). Phase 3 decisions use `NOCODB_URL`. Bootstrap script outputs use `NOCODB_*`.
-   - What's unclear: Should we rename the existing vars for consistency, or keep both?
-   - Recommendation: Add `NOCODB_URL=http://nocodb:8080` as a new env var (canonical name per D-03). Keep `NOCDB_HOST` as-is for backward compat. Rename `NOCDB_API_TOKEN` in a separate cleanup phase if desired.
+1. **Which env var naming convention?** — RESOLVED: Add `NOCODB_URL=http://nocodb:8080` as canonical name (D-03). Keep `NOCDB_HOST` for backward compat. Rename `NOCDB_API_TOKEN` in separate cleanup if desired. Plan 03-01 implements `NOCODB_URL` + table-id env vars.
 
-2. **NocoDB pagination for dedup query?**
-   - What we know: The "Get Existing Job IDs" node fetches ALL Job IDs with `?fields=Job+ID`. NocoDB returns all records unless pagination is explicitly requested via `limit`/`offset`.
-   - What's unclear: Whether large Pipeline tables (>1000 records) will be automatically paginated or returned in one response.
-   - Recommendation: Assume no pagination for Phase 3. If issues arise, the unwrap transform can be updated to handle pagination by following the `next` URL.
+2. **NocoDB pagination for dedup query?** — RESOLVED: Assume no pagination for Phase 3. NocoDB returns all records unless `limit`/`offset` is explicitly requested. If issues arise, unwrap can follow `next` URL. All plans assume non-paginated responses.
 
-3. **Unwrap node for single-vs-multi item responses?**
-   - What we know: "Get Profile" always returns 1 record. "Get Tracked Companies" returns 0-139 records.
-   - What's unclear: Whether a single unwrap node can handle both cases without modification.
-   - Recommendation: The pattern shown in this research handles both — it maps `records` regardless of count, and returns `_empty` sentinel for zero records. This matches the existing Code node `_empty` pattern.
+3. **Unwrap node for single-vs-multi item responses?** — RESOLVED: Single unwrap pattern handles both cases by mapping `response.records` regardless of count, with `_empty` sentinel for zero records. All plans use this single pattern.
 
 ## Environment Availability
 
