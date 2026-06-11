@@ -235,421 +235,96 @@
     },
     {
       "parameters": {
-        "operation": "update",
-        "base": {
-          "__rl": true,
-          "value": "appE808oZ5gTSQzUY",
-          "mode": "id"
-        },
-        "table": {
-          "__rl": true,
-          "value": "tblqvCvqMIczRGjLi",
-          "mode": "list",
-          "cachedResultName": "Pipeline",
-          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tblqvCvqMIczRGjLi"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "id": "={{ $('Parse Tailored CV').item.json.recordId }}",
-            "Tailored CV Text": "={{ $('Parse Tailored CV').item.json.tailoredCV }}",
-            "CV Tailoring Cost": "={{ $('Parse Tailored CV').item.json.cost }}"
-          },
-          "matchingColumns": [
-            "id"
-          ],
-          "schema": [
-            {
-              "id": "id",
-              "displayName": "id",
-              "required": false,
-              "defaultMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": true,
-              "removed": false
-            },
-            {
-              "id": "Job ID",
-              "displayName": "Job ID",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Job Title",
-              "displayName": "Job Title",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Company",
-              "displayName": "Company",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Location",
-              "displayName": "Location",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Apply Link",
-              "displayName": "Apply Link",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Job Description",
-              "displayName": "Job Description",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Source",
-              "displayName": "Source",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "LinkedIn",
-                  "value": "LinkedIn"
-                },
-                {
-                  "name": "Indeed",
-                  "value": "Indeed"
-                },
-                {
-                  "name": "Glassdoor",
-                  "value": "Glassdoor"
-                },
-                {
-                  "name": "Google Jobs",
-                  "value": "Google Jobs"
-                },
-                {
-                  "name": "ZipRecruiter",
-                  "value": "ZipRecruiter"
-                },
-                {
-                  "name": "Greenhouse",
-                  "value": "Greenhouse"
-                },
-                {
-                  "name": "Ashby",
-                  "value": "Ashby"
-                },
-                {
-                  "name": "Lever",
-                  "value": "Lever"
-                },
-                {
-                  "name": "Manual",
-                  "value": "Manual"
-                }
-              ],
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Source Query",
-              "displayName": "Source Query",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Source Tag",
-              "displayName": "Source Tag",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Discovery Date",
-              "displayName": "Discovery Date",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "dateTime",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Status",
-              "displayName": "Status",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "New",
-                  "value": "New"
-                },
-                {
-                  "name": "Evaluated",
-                  "value": "Evaluated"
-                },
-                {
-                  "name": "Shortlisted",
-                  "value": "Shortlisted"
-                },
-                {
-                  "name": "Applied",
-                  "value": "Applied"
-                },
-                {
-                  "name": "Interview",
-                  "value": "Interview"
-                },
-                {
-                  "name": "Offer",
-                  "value": "Offer"
-                },
-                {
-                  "name": "Rejected",
-                  "value": "Rejected"
-                },
-                {
-                  "name": "Archived",
-                  "value": "Archived"
-                }
-              ],
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Fit Score",
-              "displayName": "Fit Score",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Fit Tier",
-              "displayName": "Fit Tier",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "options",
-              "options": [
-                {
-                  "name": "High",
-                  "value": "High"
-                },
-                {
-                  "name": "Medium",
-                  "value": "Medium"
-                },
-                {
-                  "name": "Low",
-                  "value": "Low"
-                }
-              ],
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Match Reasoning",
-              "displayName": "Match Reasoning",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Matched Skills",
-              "displayName": "Matched Skills",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Missing Skills",
-              "displayName": "Missing Skills",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "CV Tailoring Notes",
-              "displayName": "CV Tailoring Notes",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Salary Info",
-              "displayName": "Salary Info",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "AI Evaluation Cost",
-              "displayName": "AI Evaluation Cost",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Applied Date",
-              "displayName": "Applied Date",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "dateTime",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Response Date",
-              "displayName": "Response Date",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "dateTime",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Outcome Notes",
-              "displayName": "Outcome Notes",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": true
-            },
-            {
-              "id": "Tailored CV Text",
-              "displayName": "Tailored CV Text",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "string",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "CV Tailoring Cost",
-              "displayName": "CV Tailoring Cost",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "number",
-              "readOnly": false,
-              "removed": false
-            },
-            {
-              "id": "Tailored CV",
-              "displayName": "Tailored CV",
-              "required": false,
-              "defaultMatch": false,
-              "canBeUsedToMatch": true,
-              "display": true,
-              "type": "array",
-              "readOnly": false,
-              "removed": true
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
+        "operation": "toBinary",
+        "sourceProperty": "docx_base64",
         "options": {
-          "typecast": true
+          "fileName": "={{ $('Render DOCX').item.json.filename }}",
+          "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         }
+      },
+      "id": "a3f2c8d1-9e4b-4a7c-b6d5-1e0f9a8b7c6d",
+      "name": "Convert to File",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        4448,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.NOCODB_URL }}/api/v2/storage/upload",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "17db6d45-27c8-4ca0-8303-1ccb3b931df0",
+      "name": "Upload DOCX",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4576,
+        64
+      ],
+      "continueOnFail": true,
+      "alwaysOutputData": true,
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "TO_BE_CREATED",
+          "name": "NocoDB API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ $env.NOCODB_URL }}/api/v3/data/{{ $env.NOCODB_BASE_ID }}/{{ $env.NOCODB_TABLE_PIPELINE }}/records",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ (() => { const parse = $('Parse Tailored CV').item.json; const uploadJson = $('Upload DOCX').item.json; const attachmentArray = Array.isArray(uploadJson) ? uploadJson : (uploadJson?.data || uploadJson?.body || []); const fields = { 'Tailored CV Text': parse.tailoredCV, 'CV Tailoring Cost': parse.cost }; if (Array.isArray(attachmentArray) && attachmentArray.length > 0 && attachmentArray[0].url) { fields['Tailored CV'] = attachmentArray; } return JSON.stringify({ id: parse.recordId, fields }); })() }}",
+        "options": {}
       },
       "id": "c586b7a9-cc82-44cc-b960-8cbed788007d",
       "name": "Update Pipeline Record",
-      "type": "n8n-nodes-base.airtable",
-      "typeVersion": 2.1,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
         4832,
         64
       ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
       "credentials": {
-        "airtableTokenApi": {
-          "id": "Ngaw78ZStScPicDq",
-          "name": "Airtable Personal Access Token account"
+        "httpHeaderAuth": {
+          "id": "TO_BE_CREATED",
+          "name": "NocoDB API"
         }
       }
     },
@@ -666,41 +341,6 @@
         64
       ],
       "webhookId": "a21fa2fa-e243-4d22-b353-36878db9585d"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "=https://content.airtable.com/v0/appE808oZ5gTSQzUY/{{ $('Parse Tailored CV').item.json.recordId }}/fldGRlQQUy9RLvbKB/uploadAttachment",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={\n  \"contentType\": \"application/vnd.openxmlformats-officedocument.wordprocessingml.document\",\n  \"file\": \"{{ $('Render DOCX').item.json.docx_base64 }}\",\n  \"filename\": \"{{ $('Render DOCX').item.json.filename }}\"\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.4,
-      "position": [
-        4576,
-        64
-      ],
-      "id": "17db6d45-27c8-4ca0-8303-1ccb3b931df0",
-      "name": "HTTP Request",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "bHbDyibFzOPyv8jj",
-          "name": "Header Auth account"
-        }
-      }
     }
   ],
   "pinData": {},
@@ -798,7 +438,7 @@
       "main": [
         [
           {
-            "node": "HTTP Request",
+            "node": "Convert to File",
             "type": "main",
             "index": 0
           }
@@ -827,17 +467,6 @@
         ]
       ]
     },
-    "HTTP Request": {
-      "main": [
-        [
-          {
-            "node": "Update Pipeline Record",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Unwrap High Fit Jobs": {
       "main": [
         [
@@ -854,6 +483,28 @@
         [
           {
             "node": "Build Tailoring Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "Upload DOCX",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload DOCX": {
+      "main": [
+        [
+          {
+            "node": "Update Pipeline Record",
             "type": "main",
             "index": 0
           }
