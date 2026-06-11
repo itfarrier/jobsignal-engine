@@ -34,77 +34,106 @@
     },
     {
       "parameters": {
-        "operation": "search",
-        "base": {
-          "__rl": true,
-          "value": "appE808oZ5gTSQzUY",
-          "mode": "list",
-          "cachedResultName": "Job Signal Engine",
-          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
+        "method": "GET",
+        "url": "={{ $env.NOCODB_URL }}/api/v3/data/{{ $env.NOCODB_BASE_ID }}/{{ $env.NOCODB_TABLE_PIPELINE }}/records?where=(Status,eq,Evaluated)~and(\"Fit Tier\",eq,High)~and(\"Tailored CV Text\",(is,blank))",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
         },
-        "table": {
-          "__rl": true,
-          "value": "tblqvCvqMIczRGjLi",
-          "mode": "list",
-          "cachedResultName": "Pipeline",
-          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tblqvCvqMIczRGjLi"
-        },
-        "filterByFormula": "==AND({Status}='Evaluated',{Fit Tier}='High',{Tailored CV Text}='')",
         "options": {}
       },
       "id": "5c001130-b04f-4a3a-a95c-fe386bee3145",
       "name": "Get High Fit Jobs",
-      "type": "n8n-nodes-base.airtable",
-      "typeVersion": 2.1,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
         2784,
         64
       ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "alwaysOutputData": true,
       "credentials": {
-        "airtableTokenApi": {
-          "id": "Ngaw78ZStScPicDq",
-          "name": "Airtable Personal Access Token account"
+        "httpHeaderAuth": {
+          "id": "TO_BE_CREATED",
+          "name": "NocoDB API"
         }
       }
     },
     {
       "parameters": {
-        "operation": "search",
-        "base": {
-          "__rl": true,
-          "value": "appE808oZ5gTSQzUY",
-          "mode": "list",
-          "cachedResultName": "Job Signal Engine",
-          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY"
-        },
-        "table": {
-          "__rl": true,
-          "value": "tbl4hqn6sfFVbLuzd",
-          "mode": "list",
-          "cachedResultName": "Profile",
-          "cachedResultUrl": "https://airtable.com/appE808oZ5gTSQzUY/tbl4hqn6sfFVbLuzd"
+        "jsCode": "// Unwrap NocoDB Data API v3 response \u2014 high-fit untailored jobs\nconst response = $input.first().json;\nconst records = response.records || [];\nif (records.length === 0) {\n  return [{ json: { _empty: true, _message: 'No high-fit jobs needing tailoring' } }];\n}\nreturn records.map(record => ({\n  json: {\n    ...record.fields,\n    id: record.id\n  }\n}));"
+      },
+      "id": "946cd3e9-6a8e-4fcc-9f8f-b2f468e61a68",
+      "name": "Unwrap High Fit Jobs",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2896,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.NOCODB_URL }}/api/v3/data/{{ $env.NOCODB_BASE_ID }}/{{ $env.NOCODB_TABLE_PROFILE }}/records",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
         },
         "options": {}
       },
       "id": "4c8867b6-5026-4e37-9f47-e0531021e8df",
       "name": "Get Profile",
-      "type": "n8n-nodes-base.airtable",
-      "typeVersion": 2.1,
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
       "position": [
         3024,
         64
       ],
       "executeOnce": true,
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "alwaysOutputData": true,
       "credentials": {
-        "airtableTokenApi": {
-          "id": "Ngaw78ZStScPicDq",
-          "name": "Airtable Personal Access Token account"
+        "httpHeaderAuth": {
+          "id": "TO_BE_CREATED",
+          "name": "NocoDB API"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "// Build the CV tailoring prompt from Profile data and job details\n\nconst profile = $('Get Profile').first().json;\nconst jobs = $('Get High Fit Jobs').all();\n\n// Get CV markdown from Profile — handle both flat and nested field shapes\nconst cvMarkdown = profile.fields \n  ? (profile.fields['CV Markdown'] || profile.fields['Professional Summary'] || '')\n  : (profile['CV Markdown'] || profile['Professional Summary'] || '');\n\nif (!cvMarkdown) {\n  throw new Error('CV Markdown is empty in Profile table. Please add your CV markdown to the Profile.');\n}\n\nconst systemPrompt = `You are an expert CV writer specializing in ATS-optimized resumes for technical professionals.\n\nRULES:\n- Keep ALL factual information accurate — do NOT invent experience, companies, dates, or metrics\n- Rewrite the Professional Summary (first paragraph after contact info) to mirror the JD's language and priorities\n- Reorder and re-emphasize bullet points to highlight matched skills\n- De-emphasize (don't remove) experience unrelated to this role\n- Incorporate the tailoring notes provided\n- Keep the EXACT SAME markdown structure as the original CV:\n  - First line: Full name in caps\n  - Second line: Contact info separated by pipes\n  - Third paragraph: Professional summary\n  - ALL-CAPS section headers (TECHNICAL SKILLS, etc.)\n  - Skills in \"Category: items\" format\n  - Bullet points with • character\n  - Job titles with | separators for company/location/dates\n  - Project names as standalone bold descriptive lines\n- Output clean text. No markdown formatting (no **, no ##, no ---). No commentary, no preamble.\n- The output must be a single-page CV. Do not add content that would push it beyond one page.\nCRITICAL: Do NOT use <thought> tags or any thinking/reasoning before your response. Start your response directly with the tailored CV content. No preamble, no explanation.`;\n\nreturn jobs.map(job => {\n  const fields = job.json.fields || job.json;\n  const recordId = job.json.id || job.json.recordId;\n  \n  return {\n    json: {\n      _systemPrompt: systemPrompt,\n      _cvMarkdown: cvMarkdown,\n      _jobDescription: fields['Job Description'] || '',\n      _matchedSkills: fields['Matched Skills'] || '',\n      _cvTailoringNotes: fields['CV Tailoring Notes'] || '',\n      _jobTitle: fields['Job Title'] || '',\n      _company: fields['Company'] || '',\n      _recordId: recordId\n    }\n  };\n});"
+        "jsCode": "// Unwrap NocoDB Data API v3 response \u2014 transforms { records: [...], next, prev } into flat items\nconst response = $input.first().json;\nconst records = response.records || [];\n\nif (records.length === 0) {\n  return [{ json: { _empty: true, _message: 'No Profile found' } }];\n}\n\nreturn records.map(record => ({\n  json: {\n    ...record.fields,\n    id: record.id\n  }\n}));"
+      },
+      "id": "eade67e0-2d78-4407-9255-aff2d6d19f86",
+      "name": "Unwrap Profile",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3136,
+        64
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build the CV tailoring prompt from Profile data and job details\n\nconst profileItems = $('Unwrap Profile').all();\nif (!profileItems || profileItems.length === 0) {\n  throw new Error('Profile table is empty. Add your profile row before running.');\n}\nconst profile = profileItems[0].json;\n\nconst allJobs = $('Unwrap High Fit Jobs').all();\nconst jobs = allJobs.filter(item => !item.json._empty);\n\n// Get CV markdown from Profile \u2014 handle both flat and nested field shapes\nconst cvMarkdown = profile.fields \n  ? (profile.fields['CV Markdown'] || profile.fields['Professional Summary'] || '')\n  : (profile['CV Markdown'] || profile['Professional Summary'] || '');\n\nif (!cvMarkdown) {\n  throw new Error('CV Markdown is empty in Profile table. Please add your CV markdown to the Profile.');\n}\n\nconst systemPrompt = `You are an expert CV writer specializing in ATS-optimized resumes for technical professionals.\n\nRULES:\n- Keep ALL factual information accurate \u2014 do NOT invent experience, companies, dates, or metrics\n- Rewrite the Professional Summary (first paragraph after contact info) to mirror the JD's language and priorities\n- Reorder and re-emphasize bullet points to highlight matched skills\n- De-emphasize (don't remove) experience unrelated to this role\n- Incorporate the tailoring notes provided\n- Keep the EXACT SAME markdown structure as the original CV:\n  - First line: Full name in caps\n  - Second line: Contact info separated by pipes\n  - Third paragraph: Professional summary\n  - ALL-CAPS section headers (TECHNICAL SKILLS, etc.)\n  - Skills in \"Category: items\" format\n  - Bullet points with \u2022 character\n  - Job titles with | separators for company/location/dates\n  - Project names as standalone bold descriptive lines\n- Output clean text. No markdown formatting (no **, no ##, no ---). No commentary, no preamble.\n- The output must be a single-page CV. Do not add content that would push it beyond one page.\nCRITICAL: Do NOT use <thought> tags or any thinking/reasoning before your response. Start your response directly with the tailored CV content. No preamble, no explanation.`;\n\nreturn jobs.map(job => {\n  const fields = job.json.fields || job.json;\n  const recordId = job.json.id;\n  if (!recordId) throw new Error('Missing NocoDB record id on job item');\n  \n  return {\n    json: {\n      _systemPrompt: systemPrompt,\n      _cvMarkdown: cvMarkdown,\n      _jobDescription: fields['Job Description'] || '',\n      _matchedSkills: fields['Matched Skills'] || '',\n      _cvTailoringNotes: fields['CV Tailoring Notes'] || '',\n      _jobTitle: fields['Job Title'] || '',\n      _company: fields['Company'] || '',\n      _recordId: recordId\n    }\n  };\n});"
       },
       "id": "cacc327d-2f6c-4e9c-8197-2f3302087f00",
       "name": "Build Tailoring Prompt",
@@ -170,7 +199,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Parse the tailored CV from AI response and prepare for rendering + Airtable update\nconst aiResponse = $input.first().json;\n\n// Extract content — handle both simplified and full response shapes\nlet tailoredCV;\nif (aiResponse.choices && aiResponse.choices[0] && aiResponse.choices[0].message) {\n  tailoredCV = aiResponse.choices[0].message.content;\n} else if (aiResponse.message && aiResponse.message.content) {\n  tailoredCV = aiResponse.message.content;\n} else if (aiResponse.content) {\n  tailoredCV = aiResponse.content;\n} else if (aiResponse.text) {\n  tailoredCV = aiResponse.text;\n} else {\n  tailoredCV = typeof aiResponse === 'string' ? aiResponse : JSON.stringify(aiResponse);\n}\n\n// Strip <thought> tags and everything inside them\nif (typeof tailoredCV === 'string' && tailoredCV.includes('<thought>')) {\n  const thoughtEnd = tailoredCV.indexOf('</thought>');\n  if (thoughtEnd !== -1) {\n    tailoredCV = tailoredCV.substring(thoughtEnd + '</thought>'.length).trim();\n  } else {\n    // No closing tag — find first line that looks like CV content\n    const lines = tailoredCV.split('\\n');\n    const cvStart = lines.findIndex(l => l.trim().length > 0 && !l.trim().startsWith('<thought>') && !l.includes('*   '));\n    if (cvStart !== -1) {\n      tailoredCV = lines.slice(cvStart).join('\\n').trim();\n    }\n  }\n}\n\nif (!tailoredCV || tailoredCV.length < 100) {\n  throw new Error('Tailored CV response too short or empty: ' + (tailoredCV || '').slice(0, 200));\n}\n\n// Calculate cost from actual token usage\nconst INPUT_COST_PER_TOKEN = 0.25 / 1_000_000;\nconst OUTPUT_COST_PER_TOKEN = 2.00 / 1_000_000;\nlet cost = 0;\nconst usage = aiResponse.usage \n  || (aiResponse.message && aiResponse.message.usage)\n  || null;\nif (usage && usage.prompt_tokens && usage.completion_tokens) {\n  cost = (usage.prompt_tokens * INPUT_COST_PER_TOKEN) \n    + (usage.completion_tokens * OUTPUT_COST_PER_TOKEN);\n  cost = Math.round(cost * 1_000_000) / 1_000_000;\n}\n\n// Get job context from the loop\nconst loopItem = $('Loop Over Jobs').item.json;\nconst safeCompany = loopItem._company.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();\nconst filename = `cv_${safeCompany}_${Date.now()}`;\n\nreturn [{\n  json: {\n    recordId: loopItem._recordId,\n    tailoredCV: tailoredCV,\n    company: loopItem._company,\n    jobTitle: loopItem._jobTitle,\n    cost: cost,\n    filename: filename\n  }\n}];"
+        "jsCode": "// Parse the tailored CV from AI response and prepare for rendering + Airtable update\nconst aiResponse = $input.first().json;\n\n// Extract content \u2014 handle both simplified and full response shapes\nlet tailoredCV;\nif (aiResponse.choices && aiResponse.choices[0] && aiResponse.choices[0].message) {\n  tailoredCV = aiResponse.choices[0].message.content;\n} else if (aiResponse.message && aiResponse.message.content) {\n  tailoredCV = aiResponse.message.content;\n} else if (aiResponse.content) {\n  tailoredCV = aiResponse.content;\n} else if (aiResponse.text) {\n  tailoredCV = aiResponse.text;\n} else {\n  tailoredCV = typeof aiResponse === 'string' ? aiResponse : JSON.stringify(aiResponse);\n}\n\n// Strip <thought> tags and everything inside them\nif (typeof tailoredCV === 'string' && tailoredCV.includes('<thought>')) {\n  const thoughtEnd = tailoredCV.indexOf('</thought>');\n  if (thoughtEnd !== -1) {\n    tailoredCV = tailoredCV.substring(thoughtEnd + '</thought>'.length).trim();\n  } else {\n    // No closing tag \u2014 find first line that looks like CV content\n    const lines = tailoredCV.split('\\n');\n    const cvStart = lines.findIndex(l => l.trim().length > 0 && !l.trim().startsWith('<thought>') && !l.includes('*   '));\n    if (cvStart !== -1) {\n      tailoredCV = lines.slice(cvStart).join('\\n').trim();\n    }\n  }\n}\n\nif (!tailoredCV || tailoredCV.length < 100) {\n  throw new Error('Tailored CV response too short or empty: ' + (tailoredCV || '').slice(0, 200));\n}\n\n// Calculate cost from actual token usage\nconst INPUT_COST_PER_TOKEN = 0.25 / 1_000_000;\nconst OUTPUT_COST_PER_TOKEN = 2.00 / 1_000_000;\nlet cost = 0;\nconst usage = aiResponse.usage \n  || (aiResponse.message && aiResponse.message.usage)\n  || null;\nif (usage && usage.prompt_tokens && usage.completion_tokens) {\n  cost = (usage.prompt_tokens * INPUT_COST_PER_TOKEN) \n    + (usage.completion_tokens * OUTPUT_COST_PER_TOKEN);\n  cost = Math.round(cost * 1_000_000) / 1_000_000;\n}\n\n// Get job context from the loop\nconst loopItem = $('Loop Over Jobs').item.json;\nconst safeCompany = loopItem._company.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();\nconst filename = `cv_${safeCompany}_${Date.now()}`;\n\nreturn [{\n  json: {\n    recordId: loopItem._recordId,\n    tailoredCV: tailoredCV,\n    company: loopItem._company,\n    jobTitle: loopItem._jobTitle,\n    cost: cost,\n    filename: filename\n  }\n}];"
       },
       "id": "2e5aa5d5-48f4-43b4-9f99-d22d07dbe01d",
       "name": "Parse Tailored CV",
@@ -702,7 +731,7 @@
       "main": [
         [
           {
-            "node": "Get Profile",
+            "node": "Unwrap High Fit Jobs",
             "type": "main",
             "index": 0
           }
@@ -713,7 +742,7 @@
       "main": [
         [
           {
-            "node": "Build Tailoring Prompt",
+            "node": "Unwrap Profile",
             "type": "main",
             "index": 0
           }
@@ -803,6 +832,28 @@
         [
           {
             "node": "Update Pipeline Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unwrap High Fit Jobs": {
+      "main": [
+        [
+          {
+            "node": "Get Profile",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unwrap Profile": {
+      "main": [
+        [
+          {
+            "node": "Build Tailoring Prompt",
             "type": "main",
             "index": 0
           }
